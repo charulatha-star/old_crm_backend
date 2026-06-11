@@ -1,0 +1,123 @@
+{% extends "admin/base_site.html" %}
+{% load static i18n humanize %}
+
+{% block extrastyle %}{{ block.super }}
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="mb-3">
+    <form method="GET">
+        <div class="form-row">
+            <div class="col-md-3">
+                <div class="form-group">
+                    <label for="company_name">Select Client Name</label>
+                    <select class="custom-select" id="company_name" name="company_name"
+                            onchange="this.form.submit()">
+                        <option value="">Choose comapny id..</option>
+                        {% for company in company_details %}
+                        <option value="{{company.id}}"
+                                {% if company.id == selected_company %} selected {% endif %}>{{company.client_id}}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="form-group">
+                    <label for="campaign">Select Campaigns</label>
+                    <select class="custom-select" id="campaign" name="campaign"
+                            onchange="this.form.submit()">
+                        <option value="">Choose..</option>
+                        {% for campaign in campaigns %}
+                        <option value="{{campaign.id}}"
+                                {% if campaign.id == selected_campaign %} selected {% endif %}>{{campaign}}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="form-group">
+                    <label for="sub-campaign">Select Sub Campaigns</label>
+                    <select class="custom-select" id="sub-campaign" name="sub_campaign"
+                            onchange="this.form.submit()">
+                        <option value="">Choose..</option>
+                        {% for sub_campaign in sub_campaigns %}
+                        <option value="{{sub_campaign.id}}"
+                                {% if sub_campaign.id == selected_sub_campaign %} selected {% endif %}>{{sub_campaign}}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-bordered table-striped">
+        <thead>
+        <tr>
+            <th>S.No</th>
+            <th>Campaign ID</th>
+            <th>Campaign Name</th>
+            <th>Sub Campaign ID</th>
+            <th>Sub Campaign Name</th>
+
+            <th>IO ID</th>
+            <th>IO Name</th>
+
+            <th>Line Item ID</th>
+            <th>Line Item Name</th>
+
+            <th>FlightDates</th>
+            <th>Total Volume Booked</th>
+
+            <th>Total Volume Delivered</th>
+            <th>Total Clicks</th>
+
+            <th>Daily Target</th>
+            <th>Last Day Impression</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for item in my_list %}
+        <tr>
+            <td>{{forloop.counter}}</td>
+            <td>{{item.object.io.sub_campaign.campaign.campaign_id}}</td>
+            <td>{{item.object.io.sub_campaign.campaign.name}}</td>
+
+            <td>{{item.object.io.sub_campaign.booking_id}}</td>
+            <td>{{item.object.io.sub_campaign.name}}</td>
+
+            <td>{{item.object.io.io_id}}</td>
+            <td>{{item.object.io.name}}</td>
+
+            <td>{{item.object.item_id}}</td>
+            <td>{{item.object.description}}</td>
+
+            <td>{{item.object.start_date}} - {{item.object.end_date}}</td>
+            <td>{{item.object.volume|intcomma }}</td>
+
+            <td>{{item.object.total_impression|intcomma}}</td>
+            <td>{{item.object.total_clicks|intcomma}}</td>
+
+            <td>{{item.daily_target|intcomma}}</td>
+            <td>
+                <div>{{item.last_date|intcomma}}</div>
+                <span class="small text-danger">{{item.differance|intcomma}} ({{item.value}}%) {{pacing}} Pacing</span>
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<script>
+$(document).ready(function() {
+    $('.custom-select').select2();
+});
+</script>
+{% endblock %}

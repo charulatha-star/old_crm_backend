@@ -1,0 +1,201 @@
+{% block content %}
+<div class="container mt-5">
+    <form action="." method="POST" enctype="multipart/form-data">
+        {{ form.as_p }}
+        {% csrf_token %}
+
+        <button type="submit">Submit</button>
+    </form>
+</div>
+<br/>
+
+{% endblock %}
+<nav>
+    <div class="nav nav-tabs" id="io-tab" role="tablist">
+        {% for insertion_order in campaign.insertion_order.all %}
+        <a
+                class="nav-item nav-link {% if forloop.first %} active{% endif %}"
+                id="{{insertion_order.id}}-tab"
+                data-toggle="tab"
+                href="#io-{{insertion_order.id}}"
+                role="tab"
+                aria-controls="io-{{insertion_order.id}}">
+            <b>{{insertion_order.booking_id}} - {{insertion_order.name}}</b>
+        </a>
+        {% endfor %}
+    </div>
+</nav>
+<div class="tab-content" id="io-tabContent">
+    {% for insertion_order in campaign.insertion_order.all %}
+
+    <div
+            class="tab-pane fade {% if forloop.first %} show active {% endif %}"
+            id="io-{{insertion_order.id}}"
+            role="tabpanel"
+            aria-labelledby="{{insertion_order.id}}-tab"
+    >
+        <div class="d-flex m-1" style="overflow: auto,">
+            {% for io_details in insertion_order.io_details.all %}
+            {% line_item_report io_details as line_item %}
+            <div class="col-4 pl-1 pr-1">
+                <div class="">
+                    <div class="card-body">
+                        <div class="card">
+                            <div class="card-header">
+                                <h6 class="font-weight-bold">{{io_details.item_id}} -
+                                    {{io_details.description}}</h6>
+                            </div>
+                            <div class="card-body row">
+                                <div class="col-6 mb-2 mt-2">
+                                    <div class="">
+                                        <div class="title">Status</div>
+
+                                        <div class="title-desc">
+                                            <span class="badge badge-pill badge-{{io_details.status}}"> {{io_details.status}}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6 mb-2 mt-2">
+                                    <div class="">
+                                        <div class="title">Line Item ID</div>
+                                        <div class="title-desc">{{io_details.item_id}}</div>
+                                    </div>
+                                </div>
+                                <div class="col-6 mb-2 mt-2">
+                                    <div class="">
+                                        <div class="title">Start Date</div>
+                                        <div class="title-desc">{{io_details.start_date}}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6 mb-2 mt-2">
+                                    <div class="">
+                                        <div class="title">End Date</div>
+                                        <div class="title-desc">{{io_details.end_date}}</div>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="d-flex justify-content-between">
+                                        <div class="mb-2 mt-2">
+                                            <div class="">
+                                                <div class="title">Booked Volume</div>
+                                                <div class="title-desc mt-2">
+                                                    {{io_details.volume|intcomma}}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="mb-2 mt-2">
+                                            <div class=" text-center">
+                                                <div class="title">Delivered Volume</div>
+                                                <div class="title-desc  mt-2">
+                                                    {{io_details.total_impression|intcomma}}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="mb-2 mt-2">
+                                            <div class="">
+                                                <div class="title">Remaining Volume</div>
+                                                <div class="title-desc mt-2">
+                                                    {{line_item.remaining_impressions|intcomma}}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+                                <div class="col-4 mb-2 mt-2">
+                                    <div class="">
+                                        <div class="title">Ad Format</div>
+                                        <div class="title-desc">{{io_details.ad_type}}</div>
+                                    </div>
+                                </div>
+                                <div class="col-4 mb-2 mt-2">
+                                    <div class="">
+                                        <div class="title">Units Costs</div>
+                                        <div class="title-desc">{{line_item.billing_currency}}
+                                            {{io_details.unit_cost}}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-4 mb-2 mt-2">
+                                    <div class="">
+                                        <div class="title">Budget Spent</div>
+                                        <div class="title-desc">
+                                            {{line_item.billing_currency}}
+                                            {{io_details.total_budget|floatformat:"2" |intcomma}}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-4 mb-2 mt-2">
+                                    <div class="">
+                                        <div class="title">Daily Target</div>
+                                        <div class="title-desc">{{line_item.daily_target |intcomma}}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-4 mb-2 mt-2">
+                                    <div class="">
+                                        <div class="title">Total Days</div>
+                                        <div class="title-desc">{{line_item.total_days}} Days</div>
+                                    </div>
+                                </div>
+                                <div class="col-4 mb-2 mt-2">
+                                    <div class="">
+                                        <div class="title">Remaining Days</div>
+                                        <div class="title-desc">{{line_item.remaining_days}} Days
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                        <table class="table text-center table-bordered">
+                            <tr>
+                                <th>Date</th>
+                                <th>Impressions</th>
+                                <th>Clicks</th>
+                                <th>CTR</th>
+                                <th>Budget</th>
+                                {% if io_details.category.category.category %}
+                                {% if io_details.category.category.category.id is 2 %}
+                                <th>Viewability</th>
+                                {% else %}
+                                <th>Viewability</th>
+                                <th>Video Completion Rate</th>
+                                {% endif %}
+                                {% endif %}
+                            </tr>
+
+                            {% for report in line_item.reports %}
+                            <tr>
+                                <td>{{report.date}}</td>
+                                <td>{{report.impression}}</td>
+                                <td>{{report.clicks}}</td>
+                                <td>{{report.ctr}}%</td>
+                                <td>
+                                    {{report.budget|floatformat:"2" |intcomma}}
+                                    <small>{{line_item.billing_currency}}</small>
+                                </td>
+                                {% if io_details.category.category.category %}
+                                {% if io_details.category.category.category.id is 2 %}
+                                <th>{{report.viewability}}%</th>
+                                {% else %}
+                                <td>{{report.viewability}}%</td>
+                                <td>{{report.video_completion_rate }} %</td>
+                                {% endif %}
+                                {% endif %}
+                            </tr>
+                            {% endfor %}
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            {% endfor %}
+        </div>
+    </div>
+
+    {% endfor %}
+</div>

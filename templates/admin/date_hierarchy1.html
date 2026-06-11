@@ -1,0 +1,30 @@
+{% if show %}
+<div class="xfull">
+    <ul class="toplinks">
+        {% block date-hierarchy-toplinks %}
+
+        {% block date-hierarchy-choices %}
+        <input type="text"  class="form-control" name="daterange" value="01/01/2018 - 01/15/2018"/>
+
+        {% for choice in choices %}
+        <li> {% if choice.link %}<a href="{{ choice.link }}">{% endif %}{{ choice.title }}{% if choice.link %} 1</a>
+            {% endif %}
+        </li>
+        {% endfor %}
+        {% endblock %}
+
+        {% endblock %}
+    </ul>
+    <br class="clear">
+</div>
+<script>
+    $(function() {
+  $('input[name="daterange"]').daterangepicker({
+    opens: 'left'
+  }, function(start, end, label) {
+    console.log("A new date selection was made: " + start.format('YYYY-MM-DD') + ' to ' + end.format('YYYY-MM-DD'));
+  });
+});
+
+</script>
+{% endif %}

@@ -1,0 +1,594 @@
+{% extends "easy_pdf/base.html" %}
+{% block extra_style %}
+<style type="text/css">
+        body{
+            font-family: ProximaNova,Arial,Sans-serif;
+            font-size:11px;
+            line-height:18px;
+        }
+        p{
+        text-align: justify;
+        }
+
+        table tr th{
+            text-align: left;
+        }
+        table tr td, table tr th{
+            vertical-align: top;
+        }
+        .text-right{
+            text-align:right;
+        }
+        .footer{
+            font-size: 10px;
+            color: #909090;
+        }
+        .header{
+            font-weight: 600;
+            font-size:13px;
+        }
+        .w-100{
+            width: 100%;
+        }
+        .w-80{
+            width: 80%;
+        }
+        .w-50{
+            width: 50%;
+        }
+        .table-bordered {
+            border: 1px solid #dee2e6;
+        }
+        .vertical-middle{
+            vertical-align: middle;
+        }
+        .table {
+            width: 100%;
+            margin-bottom: 1rem;
+            background-color: transparent;
+        }
+
+        .table th,
+        .table td {
+            padding: 0.3rem;
+            vertical-align: top;
+            border-top: 1px solid #dee2e6;
+        }
+
+        .table thead th {
+            vertical-align: bottom;
+            border-bottom: 2px solid #dee2e6;
+        }
+
+        .table tbody + tbody {
+            border-top: 2px solid #dee2e6;
+        }
+
+        .table .table {
+            background-color: #fff;
+        }
+
+        @media print{
+            #bottomSection{
+                position: fixed;
+                bottom: 0;
+            }
+        }
+
+
+
+
+</style>
+{% endblock %}
+{% block layout_style %}
+<style type="text/css">
+        @page {
+            size: {{ pagesize|default:"A4" }};
+            margin-left: 2.5cm;
+            margin-right: 2.5cm;
+            margin-top: 2.5cm;
+            margin-bottom: 2.8cm;
+
+            @frame header {
+                -pdf-frame-content: page-header;
+                margin-top: 0.7cm;
+                margin-right: 2mm;
+                margin-bottom: 0cm;
+                margin-left: 1.2cm;
+            }
+
+            @frame footer {
+                -pdf-frame-content: page-footer;
+                bottom: .2cm;
+                margin-left: 2.5cm;
+                margin-right: 2cm;
+                height: 2.5cm;
+            }
+        }
+
+
+
+
+</style>
+{%endblock%}
+
+{% block content %}
+<div id="content" class="">
+    <div class="main-page">
+        <div>
+            <p style="padding-top: 130px; font-weight:600;">01-Jun-2021</p>
+            <p style="line-height: 22px">
+                Sarath Kumar P<br>
+                48, Nandanam<br>
+                Chennai(Dt), Chennai,<br>
+                Tamil Nadu <br>
+            </p>
+            <p>Dear <span style="font-weight: 600">Sarath Kumar P,</span></p>
+            <p>We are pleased to offer to you an opportunity for full-time employment with Billiontags Creations Private
+                Limited (<b>"The Company"</b>). If you accept our offer, your tentative joining date will be on
+                30-Aug-2021 or
+                such other date as communicated by the Company.
+            </p>
+            <p>
+                Attachment A contains the terms and conditions of your employment with the Company.<br>
+                Attachment B contains the details of your compensation and benefits, which is subject to appropriate
+                taxes. These taxes will be deducted from your pay.
+            </p>
+            <p>
+                If you accept our offer of employment, please sign in the space provided on Page 6 and return to us within
+                3 business days from the date of this letter. Our offer shall automatically lapse unless we receive your
+                acceptance within the designated time or unless we grant an extension of time due to extenuating
+                circumstances.
+            </p>
+            <p>
+                You are required to handle this letter with all terms and its contents as strictly confidential,
+                including but not limited to compensation, and you may not disclose or discuss the same, externally or
+                with co-workers, without the Company’s prior written consent.
+            </p>
+            <p>We look forward to you joining our team and contributing to the Company’s success. Should you have any
+                questions or would like to discuss the terms and/or conditions of this offer, please feel free to
+                contact your recruiter.
+            </p>
+            <p>Yours sincerely,
+                <br>
+                For Billiontags Creations Private Limited
+            </p>
+            <div style="padding-top:30px; font-weight:600">
+                <img src="data:image/jpeg;base64,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"
+                     height="60" style="vertical-align: middle;">
+            </div>
+            <p style="padding-top:30px; font-weight:600">
+                Divya Ashokkumar
+                <br>
+                Director
+            </p>
+        </div>
+        <div style="page-break-before: always;">
+            <h3 style="margin-bottom: 30px">Attachment A</h3>
+            <div>
+                <h6>
+                    1. Date of Appointment
+                </h6>
+                <p>Your employment will be effective upon your signing of this letter which shall be provided to you for
+                    signature on your first day of employment (30-Aug-2021). All your service benefits will be effective
+                    the
+                    Date of Joining. This offer letter and your employment are contingent upon the satisfactory
+                    completion
+                    of background and reference checks and immigration related approvals, if any. Your employment is
+                    based
+                    upon the information and declarations provided by you. If at any time we determine that the
+                    information
+                    provided is false or misleading or that you have concealed information, the Company may withdraw its
+                    offer and/or terminate your employment immediately.
+                </p>
+                <p>You have represented to us, and you are being employed by us, on the basis that, to the best of your
+                    knowledge, you have no restrictions or commitments to former employers or other entities which would
+                    in any way affect or hinder your rendering the services to the Company or that would restrict you
+                    from joining the Company.
+                </p>
+            </div>
+            <div>
+                <h6>
+                    2. Location
+                </h6>
+                <p>Your current location of posting will be in our Chennai, Tamil Nadu, India office. The Company may,
+                    at its sole discretion, transfer you to any other office or location of the Company or any of its
+                    affiliates.
+                </p>
+            </div>
+            <div>
+                <h6>
+                    3. Designation and Job responsibilities
+                </h6>
+                <p>Your designation in the organization presently is Software Engineer III. Your job responsibilities
+                    will be as assigned to you by the management from time to time. The designation, reporting and the
+                    job responsibilities are subject to review by the management from time to time. You shall perform
+                    and discharge faithfully and to the best of your ability the duties, which may be assigned to you
+                    from time to time by the Company and shall report to Senior Manager I, Data Engineering in
+                    connection with such responsibilities.
+                </p>
+                <p>You will devote your full working time, energy and attention exclusively to the duties entrusted to
+                    you and you shall not engage yourself in working for any other person or Company in any capacity,
+                    whatsoever, nor do any private business without obtaining our prior permission in writing.
+                </p>
+            </div>
+            <div>
+                <h6>
+                    4. Emoluments
+                </h6>
+                <p>Your Total Direct Compensation is INR 28,65,900/- per annum which shall include all perks, benefits
+                    as described in Attachment B. Provided that all amounts payable by the Company shall be subject to
+                    any taxes required to be withheld or deducted at source
+                </p>
+            </div>
+            <div>
+                <h6>
+                    5. Working Hours and Leave
+                </h6>
+                <p>Your work days, hours of work and the beginning and ending times of your shifts shall be determined
+                    by your manager and/or the HR department from time to time. The Company may require you to work in
+                    different shifts and the timing of those shifts and/or days of the week upon which the shifts are
+                    scheduled may be changed at the discretion of the Company to accommodate the needs of the business.
+                    If you are required to work different shifts, you may be eligible for a shift allowance as per
+                    Company policy depending on which shifts you are required to work. You shall be eligible for leave
+                    in accordance with the Company's policies and practices notified from time to time.
+                </p>
+            </div>
+            <div>
+                <h6>
+                    6. Salary Review
+                </h6>
+                <p>The salary and compensation are subject to being reviewed and modified annually by the Company
+                    normally on April of every year. Your next salary review will be in April 2022. The Company shall be
+                    entitled to withhold from any payments due to you pursuant to the provisions of this letter, any
+                    amounts required to be withheld by any applicable taxing or other authority, or any amounts loaned
+                    to you by the Company.
+                </p>
+            </div>
+
+            <div>
+                <h6>
+                    7. Travel
+                </h6>
+                <p>The Company may require you to undertake travel on the Company’s work, and you shall be eligible for
+                    reimbursement of travel expenses for official work as per the Company’s policies.
+                </p>
+            </div>
+
+            <div>
+                <h6>
+                    8. Transfers
+                </h6>
+                <p>From time to time, depending on our business needs, the Company may transfer you in such capacity as
+                    the Company may determine anywhere in India or abroad to any one of Company’s departments,
+                    subsidiaries, joint ventures, associates and affiliated Companies. During the tenure of such
+                    transfers, you may be entitled to benefits as per the Company's guidelines.
+                </p>
+            </div>
+            <div>
+                <h6>
+                    9. Confidentiality and Non-Disclosure of Confidential Information, Non-Solicitation, and Product
+                    Assignment
+
+                </h6>
+                <p>You will not at any time, without the consent of the Company disclose divulge, display, disseminate
+                    or make public, except under legal obligation, any information regarding the Company’s affairs or
+                    administration or service carried out, whether the same be confided to you or become known to you in
+                    course of your service or otherwise. Any breach of this condition would entitle the Company to take
+                    such action as would be appropriate in the circumstances and / or to claim any damages from you. The
+                    Company’s offer for employment is conditional and subject to the Non- Disclosure, Non-Solicitation,
+                    and Product Assignment Agreement (“Agreement”), a copy of which can be obtained from the HR
+                    Department. You will be required to sign the Agreement within the first month of Joining.
+
+                </p>
+            </div>
+            <div>
+                <h6>
+                    10. Protection of Interest
+                </h6>
+                <p>If any declaration or information furnished or provided by you to the Company during or prior to the
+                    Date of Joining proves to be false or misleading, or if you are found to have willfully suppressed
+                    any material information, the Company reserves the right to terminate your employment immediately
+                    without any notice or compensation whatsoever.
+                </p>
+            </div>
+            <div>
+                <h6>
+                    11. Code of Conduct
+                </h6>
+                <p>You will adhere to the Company’s policies and Code of Conduct which may be changed or revised from
+                    time to time. The HR Department will make available to you copies of these policies and you should
+                    review prior to acceptance of our offer. The Company reserves the right to terminate your employment
+                    without any reason or notice on receiving any information on your violation of the Company’s
+                    policies or Code of Conduct.
+                </p>
+                <p>Further you agree to abide by all the Company rules, regulations, instructions, policies, practices
+                    and procedures which the Company may amend from time to time and to indemnify the Company for any
+                    loss suffered as a consequence of a breach by you of the Company rules, regulations, instructions,
+                    policies, practices and procedures.
+                </p>
+            </div>
+            <div>
+                <h6>
+                    12. Termination
+                </h6>
+                <p>Either party may terminate your employment with one month’s notice in writing. The Company reserves
+                    the right to pay in lieu of notice. In case you have given notice to resign or terminate your
+                    employment, you are expected to serve the entire notice period diligently, although the Company may
+                    in its sole discretion permit you to leave earlier.
+                </p>
+                <p>Notwithstanding the information above or anything else to the contrary, the Company may suspend,
+                    dismiss, discharge or terminate your employment with immediate effect by a notice in writing
+                    (without salary in lieu of notice) in the event of (i) fraudulent, dishonest or undisciplined
+                    conduct by you, (ii) you commit a breach of integrity, or embezzlement, or misappropriation or
+                    misuse or causing damage to the Company’s property, (iii) your insubordination or failure to comply
+                    with the directions given to you by persons so authorized, (iv) your insolvency, or any allegation
+                    or conviction for any criminal offense, (v) your breach of any terms or conditions of this offer
+                    letter or the Company’s policies or other documents or directions of the Company. (vi) you going on
+                    or abetting a strike in contravention of any law for the time being in force, (vii) you conducting
+                    yourself in a manner which is regarded by the Company as prejudicial to its own interests or to the
+                    interests of its clients and/or (viii) misconduct by you as provided under the labor laws and/or in
+                    the Company’s policies.
+                </p>
+            </div>
+            <div>
+                <h6>
+                    12. Obligations Upon Termination
+                </h6>
+                <p>Upon termination of your employment with the Company, you are required to return to the Company all
+                    documents, key business contacts, assets and books of whatsoever nature in your custody, care or
+                    charge and obtain clearance from the relevant person and departments. Where required, the Company
+                    will advise the relevant authorities of the termination of your employment.
+                </p>
+                <p>Further, all memoranda, notes, records or other documents made or compiled by you or made available
+                    to you during your employment with the Company concerning the business and/or operations of the
+                    Company shall be the Company’s property and shall, if in your possession or under your control, be
+                    delivered to the Company on the termination of your employment. You shall not use for yourself or
+                    others, or divulge to others, any proprietary or confidential information of the Company, obtained
+                    by you as a result of your employment, unless authorized by the Company.
+                </p>
+            </div>
+            <div>
+                <h6>
+                    13. Personal Data
+                </h6>
+                <p>By signing this letter, you authorize the Company to verify, validate, transfer, store, process and
+                    share all personal data and other information relating to you and provided by you to the Company or
+                    otherwise obtained by the Company in connection with your engagement with the Company, with other
+                    companies, whether in India or abroad, under the Billiontags group of companies.
+                </p>
+                <p>Notwithstanding the information above or anything else to the contrary, the Company may suspend,
+                    dismiss, discharge or terminate your employment with immediate effect by a notice in writing
+                    (without salary in lieu of notice) in the event of (i) fraudulent, dishonest or undisciplined
+                    conduct by you, (ii) you commit a breach of integrity, or embezzlement, or misappropriation or
+                    misuse or causing damage to the Company’s property, (iii) your insubordination or failure to comply
+                    with the directions given to you by persons so authorized, (iv) your insolvency, or any allegation
+                    or conviction for any criminal offense, (v) your breach of any terms or conditions of this offer
+                    letter or the Company’s policies or other documents or directions of the Company. (vi) you going on
+                    or abetting a strike in contravention of any law for the time being in force, (vii) you conducting
+                    yourself in a manner which is regarded by the Company as prejudicial to its own interests or to the
+                    interests of its clients and/or (viii) misconduct by you as provided under the labor laws and/or in
+                    the Company’s policies.
+                </p>
+            </div>
+
+            <div>
+                <h6>
+                    14. General
+                </h6>
+                <p>All notices required or permitted to be given shall be in writing and delivered personally, by e-mail
+                    or by certified or registered mail, return receipt requested, postage prepaid, or given by a
+                    nationally recognized courier service providing for proof of delivery to the following persons at
+                    the following addresses, or to such other persons at such other addresses as any party may request
+                    by notice in writing to the other party to this Agreement. Further, the Company’s policies are part
+                    of this offer of employment and you will have to sign and abide strictly by the Company’s code of
+                    conduct in all business transactions, including protection of Company assets, conflict of interest,
+                    relations with vendors and other policy guidelines. A copy of such policies will be provided upon
+                    your request.
+                </p>
+                <p>Your employment and the terms and conditions of this letter shall be governed by and construed in
+                    accordance with the laws of India.
+                </p>
+            </div>
+        </div>
+
+        <div style="page-break-before: always;">
+            <p>Yours sincerely,
+                <br>
+                For Billiontags Creations Private Limited
+            </p>
+            <div style="padding-top:30px; font-weight:600">
+                <img src="data:image/jpeg;base64,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"
+                     height="60" style="vertical-align: middle;">
+            </div>
+            <p style="padding-top:30px; font-weight:600">
+                Divya Ashokkumar
+                <br>
+                Director
+            </p>
+        </div>
+
+        <div style="page-break-inside: avoid;">
+            <h6 style="padding-top:40px;">Confirmation and Acceptance</h6>
+            <p>I, Sarath Kumar, hereby accept to be a part of the Company and will abide by the Code of Conduct,
+                policies, guidelines and the terms/conditions as set forth in this letter.
+            </p>
+            <p style="padding-top:40px;">
+                _______________________________
+            </p>
+            <p>
+                Name: Sarath Kumar<br>
+                Date:
+
+            </p>
+
+            <table>
+                <tr>
+                    <td>Father’s/Husband’s:</td>
+                    <th></th>
+                </tr>
+                <tr>
+                    <td>Name:</td>
+                    <th></th>
+                </tr>
+                <tr>
+                    <td>Date of Birth :</td>
+                    <th></th>
+                </tr>
+                <tr>
+                    <td>Contact Number & Email ID :</td>
+                    <th></th>
+                </tr>
+
+            </table>
+        </div>
+
+
+        <div style="page-break-before: always;">
+            <h3 style="">Attachment B</h3>
+            <p>Your current position title is Software Engineer III, your level is IN 3</p>
+            <h6 style="text-align:center">Annual Compensation</h6>
+            <table class="table table-bordered  w-100">
+                <thead>
+                <tr>
+                    <th>Components</th>
+                    <th>Annual Compensation (INR)</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td>Basic</td>
+                    <td>8,20,000</td>
+                </tr>
+                <tr>
+                    <td>HRA</td>
+                    <td>8,20,000</td>
+                </tr>
+                <tr>
+                    <td>Flexible Compensation Plan*</td>
+                    <td>8,20,000</td>
+                </tr>
+                <tr>
+                    <th>Annual Gross Salary</th>
+                    <td>8,20,000</td>
+                </tr>
+                <tr>
+                    <td>Retirals (PF)**</td>
+                    <td>8,20,000</td>
+                </tr>
+                <tr>
+                    <th>Annual Fixed Salary</th>
+                    <td>8,20,000</td>
+                </tr>
+                <tr>
+                    <th>Annual Incentive at Target (MIP)</th>
+                    <td>8,20,000</td>
+                </tr>
+                <tr>
+                    <td>Target Annual Incentive % (as a % of Annual Gross Salary)</td>
+                    <td>8,20,000</td>
+                </tr>
+                <tr>
+                    <td>Target Annual Incentive Amount</td>
+                    <td>8,20,000</td>
+                </tr>
+                <tr>
+                    <th>Target TC (Target Total Cash)</th>
+                    <td>8,20,000</td>
+                </tr>
+                <tr>
+                    <td>Annual RSU at Target</td>
+                    <td>8,20,000</td>
+                </tr>
+                <tr>
+                    <td>Target RSU % (as a % of Annual Gross Salary)</td>
+                    <td>8,20,000</td>
+                </tr>
+                <tr>
+                    <td>Target RSU Amount</td>
+                    <td>8,20,000</td>
+                </tr>
+                <tr>
+                    <th>Target TDC (Total Direct Compensation)</th>
+                    <td>8,20,000</td>
+                </tr>
+
+                </tbody>
+
+            </table>
+            <p><b>Flexible Compensation Plan*:</b> You can choose the below components to make your FCP tax efficient in
+                line with the policy</p>
+            <table>
+                <tr>
+                    <td>
+                        <table class="table-bordered table w-50">
+                            <thead>
+                            <tr>
+                                <th>Components</th>
+                                <th>Per Annum</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr>
+                                <td>LTA</td>
+                                <td>75,000.00</td>
+                            </tr>
+                            <tr>
+                                <td>Telephone Reimbursement</td>
+                                <td>36,000.00</td>
+                            </tr>
+                            <tr>
+                                <td>National Pension Scheme</td>
+                                <td>10% of Basic</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </td>
+                    <td></td>
+                </tr>
+            </table>
+
+        </div>
+        <div style="page-break-before: always;">
+            <h6 style="text-align:center; padding-top:60px">SERVICE LEVEL AGREEMENT</h6>
+            <p>The EMPLOYEE shall join the services of the organization on 12th February 2018 and he/she shall serve the
+                organization for a minimum period of 2 years, from the date of assigning the project. The organization
+                will impart training to the employee in selected technology for software development/technical support
+                and the EMPLOYEE shall carry out the work assigned to him /her faithfully and diligently. For EMPLOYEES
+                who are assigned at customer sites, he/she recognizes that the employer is liable to pay penalty to the
+                client, in case the EMPLOYEE terminates this agreement (or resigns from his/her employment) before
+                completing the minimum stipulated contract period, which is 2 years as per company rules (exclusive of
+                training period). Upon fully understanding the penalty clause of the client, EMPLOYEE hereby agrees to
+                complete the contract assignment for the duration agreed upon (including extensions if any). EMPLOYEE
+                further confirms that he/she will not terminate the contract while on an assignment with the client,
+                during the period mentioned above including the extended period, if any. The employee agrees to
+                reimburse the cost of both penalties levied by the client and training in Chennai and other locations in
+                India including overseas, if the employee decides to leave the company during the currency of the
+                agreement. If the EMPLOYEE resigns from service or terminates this agreement before the expiration of
+                the said period of agreement, he/she shall be liable to pay to the organization herein Rs.1,25,000/- as
+                cost of training excluding Notice period and liquidated damages as per rules of the organization or
+                shall serve the notice period of two months without any salary which is at the discretion of the
+                management. The organization hereby further reserves the right of claiming damages in the event of the
+                employee committing breach of any of the covenants contemplated under the present agreement.
+                Notwithstanding the service period 2 years, the organization may terminate the services of the employee
+                – (i) If he/she has become unfit for work or is unable to discharge his/her duties or is negligent,
+                irregular or inefficient in the discharge of his/her duties by giving one month’s notice or notice pay
+                in lieu thereof. (ii) If he/she commits breach of any of the covenants and obligations to be served and
+                performed by him/her, and (ii) If he/she is guilty of misconduct in relation to his/her duties or
+                disobeys or fails to carry out the orders and instructions lawfully issued to him/her as aforesaid with
+                immediate effect. (iv) If he/she is medically unfit for the employment. </p>
+        </div>
+
+    </div>
+
+</div>
+{% endblock %}
+
+{% block page_foot %}
+<div class="footer">
+
+    Billiontags Creations Private Limited, <br>
+    Regd. Office: 672, Temple Towers, Anna salai, Teynampet, Chennai 600035,
+    <br>www.billiontags.com
+</div>
+{% endblock %}

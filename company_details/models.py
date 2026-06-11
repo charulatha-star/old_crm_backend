@@ -1,0 +1,114 @@
+from django.contrib.auth.models import User
+from django.db import models
+
+from categories.models import Country, Roles, PaymentTerms
+
+PAYMENT_TERM = (
+    ("Pre Payment", "Pre Payment"),
+    ("Post Payment", "Post Payment"),
+)
+
+
+class CompanyDetails(models.Model):
+    objects = None
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="company")   # Django login account
+    client_id = models.CharField(max_length=60)   # auto generated client id (C0001, C0002, ...)
+    report_id = models.CharField(max_length=60, blank=True, null=True, verbose_name="Reporting ID")
+    name = models.CharField(max_length=120, unique=True) # Company name should be unique to avoid confusion in reports and invoices
+    phone_number = models.CharField(max_length=15, blank=True, null=True) 
+    email = models.EmailField() 
+    address_line_1 = models.CharField(max_length=120)
+    address_line_2 = models.CharField(max_length=120, blank=True, null=True)
+    zipcode = models.CharField(max_length=8)
+    country = models.ForeignKey(Country, on_delete=models.CASCADE, related_name="company_country")
+    billing_currency = models.ForeignKey(Country, on_delete=models.CASCADE, related_name="billing_currency")
+    gst_no = models.CharField(max_length=40, blank=True, null=True)
+    cin_no = models.CharField(max_length=50, blank=True, null=True)
+    is_domestic = models.BooleanField()
+    wallet_amount = models.PositiveIntegerField(default=0, verbose_name="Wallet Available Amount")
+    payment_type = models.CharField(max_length=50, choices=PAYMENT_TERM)
+    payment_term = models.ForeignKey(PaymentTerms, on_delete=models.CASCADE, blank=True, null=True)
+    is_active = models.BooleanField(default=True)
+    created_on = models.DateTimeField(auto_now_add=True)
+    updated_on = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "tbl_company_details"
+        verbose_name = "Company Details"
+        verbose_name_plural = "Company Details"
+        ordering = ["-client_id"]
+
+    def __str__(self):
+        return self.name
+
+
+# People at client company who will be in touch with us for campaign related communication, invoicing etc. Each contact person will have a separate login account (if needed in future)
+class CompanyContacts(models.Model):
+    objects = None
+    user = models.OneToOneField(User, on_delete=models.CASCADE, blank=True, null=True, related_name="company_contact_user")  # Django login account for company contact person (if needed in future)
+    company = models.ForeignKey(CompanyDetails, on_delete=models.CASCADE)  # which company they belong to
+    name = models.CharField(max_length=120)
+    phone_number = models.CharField(max_length=15, blank=True, null=True)
+    email = models.EmailField()
+    destination = models.ForeignKey(Roles, on_delete=models.CASCADE, verbose_name="Designation")   # their job role/designation
+    digital_signature = models.ImageField(upload_to="company-user-signature", blank=True, null=True)   # their signature image
+    address_line_1 = models.CharField(max_length=120)
+    address_line_2 = models.CharField(max_length=120, blank=True, null=True)
+    zipcode = models.CharField(max_length=8)
+    country = models.ForeignKey(Country, on_delete=models.CASCADE)
+    is_active = models.BooleanField(default=True)
+    created_on = models.DateTimeField(auto_now_add=True)
+    updated_on = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "tbl_company_contacts"
+        verbose_name = "Company Contacts"
+        verbose_name_plural = "Company Contacts"
+
+    def __str__(self):
+        return "{}-CP{:04d}".format(self.company.client_id, self.pk)
+
+    def get_id_name(self):
+        return "{}-CP{:04d}".format(self.company.client_id, self.pk)
+
+
+# It contains multiple addresses for a company (billing address, registered address, etc.)
+class CompanyAddress(models.Model):
+    objects = None
+    company = models.ForeignKey(CompanyDetails, on_delete=models.CASCADE)
+    address_line_1 = models.CharField(max_length=120)
+    address_line_2 = models.CharField(max_length=120, blank=True, null=True)
+    zipcode = models.CharField(max_length=8)
+    country = models.ForeignKey(Country, on_delete=models.CASCADE)
+    is_active = models.BooleanField(default=True)
+    created_on = models.DateTimeField(auto_now_add=True)
+    updated_on = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "tbl_company_address"
+        verbose_name = "Company Address"
+        verbose_name_plural = "Company Address"
+
+    # def __str__(self):
+    #     return self.company
+    
+    def __str__(self):
+        return str(self.company)   # change this line 
+    
+
+# Wallet transaction log 
+class CompanyWalletHistory(models.Model):
+    objects = None
+    company = models.ForeignKey(CompanyDetails, on_delete=models.CASCADE, related_name="wallet_history")
+    description = models.CharField(max_length=255)
+    amount = models.FloatField()
+    is_credit = models.BooleanField()  # True=money added, False=money deducted
+    created_on = models.DateField(auto_now_add=True) 
+
+    class Meta:
+        db_table = "tbl_company_wallet_history"
+        verbose_name = "Wallet History"
+        verbose_name_plural = "Wallet History"
+
+    def __str__(self):
+        return self.description

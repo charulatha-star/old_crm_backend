@@ -1,0 +1,1 @@
+Dear {{request.name}}, Re: Campaign Request, Thanks Choosing with us

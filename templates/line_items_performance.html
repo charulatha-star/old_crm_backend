@@ -1,0 +1,84 @@
+{% extends "admin/base_site.html" %}
+{% block content %}
+{% load humanize%}
+
+<div class="mb-3">
+    <form method="GET">
+        <div class="form-row">
+            <div class="col-md-3">
+                <div class="form-group">
+                    <label for="company">Select Category</label>
+                    <select class="custom-select" id="category" name="category" onchange="this.form.submit()">
+                        <option value="">choose..</option>
+                        {% for category in categories %}
+                        <option value="{{ category.id }}"
+                                {% if category.id == selected_categories.id %} selected {% endif %}>{{ category }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+<div class="table-responsive">
+    <table class="table table-bordered table-striped">
+        <thead>
+        <tr>
+            <th rowspan="2">S.No</th>
+            <th rowspan="2">Campaign id</th>
+            <th rowspan="2">Campaign Name</th>
+            <th rowspan="2">Sub Campaign Id</th>
+            <th rowspan="2">Sub campaign</th>
+            <th rowspan="2">IO ID</th>
+            <th rowspan="2">IO Name</th>
+            <th rowspan="2">Line Item ID</th>
+            <th rowspan="2">Line Item Name</th>
+            <th rowspan="2">Total Volume Booked</th>
+            <th rowspan="2">Total Volume Delivered</th>
+            <th rowspan="2">Total Clicks</th>
+            <th colspan="{{selected_categories.subcategory.count }}">Performance</th>
+        </tr>
+        <tr>
+            {% for sub_category in selected_categories.subcategory.all %}
+            <th>{{sub_category.title}}</th>
+            {% endfor %}
+        </tr>
+        </thead>
+        <tbody>
+        {% for item in my_list %}
+        <tr>
+            <td>{{ forloop.counter }}</td>
+            <td>{{ item.object.io.sub_campaign.campaign.campaign_id }}</td>
+            <td>{{ item.object.io.sub_campaign.campaign.name }}</td>
+            <td>{{ item.object.io.sub_campaign.booking_id }}</td>
+            <td>{{ item.object.io.sub_campaign.name }}</td>
+            <td>{{ item.object.io.io_id }}</td>
+            <td>{{ item.object.io.name }}</td>
+            <td>{{ item.object.item_id }}</td>
+            <td>{{ item.object.description }}</td>
+            <td>{{item.object.volume|intcomma }}</td>
+
+            <td>{{item.object.total_impression|intcomma}}</td>
+            <td>{{item.object.total_clicks|intcomma}}</td>
+            {% for sub_category in selected_categories.subcategory.all %}
+            {% for key, value in item.performance.items %}
+            {% if key == sub_category.id %}
+            <td>
+                <div>
+                    Target : {{value.target}}<br>
+                    Archived : {{value.archived}}<br>
+                    <span class="small{% if value.is_under %} text-danger{%else%} text-success{% endif%}">{{value.performance}} ({{value.percentage}}%)</span>
+                </div>
+
+            </td>
+            {% endif %}
+            {% endfor %}
+            {% endfor %}
+
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

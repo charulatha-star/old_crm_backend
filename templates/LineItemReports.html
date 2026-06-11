@@ -1,0 +1,166 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% load reports %}
+
+{% block extrastyle %}{{ block.super }}
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+{% endblock %}
+
+{% block coltype %}colMS{% endblock %}
+
+{% block bodyclass %}{{ block.super }} dashboard{% endblock %}
+
+{% block breadcrumbs %}{% endblock %}
+
+{% block content %}
+
+<div id="content-main">
+    <h3>Reports</h3>
+    <form method="post">
+        <div class="form-row">
+            {% csrf_token %}
+            <div class="col-md-3">
+                <div class="form-group">
+                    <label for="company">Select Company</label>
+                    <select class="custom-select" id="company" name="company_details"
+                            onchange="this.form.submit()">
+                        <option value="">Choose..</option>
+                        {% for company in company_details %}
+                        <option value="{{company.id}}"
+                                {% if company.id == selected_company_details %} selected {% endif %}>{{company.client_id}}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="form-group">
+                    <label for="company">Select Campaign</label>
+                    <select class="custom-select" id="campaign" name="campaign"
+                            onchange="this.form.submit()">
+                        <option value="">Choose...</option>
+                        {% for campaign in campaigns %}
+                        <option value="{{campaign.id}}" {% if campaign.id == selected_campaign %} selected {% endif %}>
+                            {{campaign}}
+                        </option>
+                        {% endfor %}
+                    </select>
+
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="form-group">
+                    <label for="reportDate">Report On</label>
+                    <input type="text" id="reportDate" class="form-control" name="date" value="{{selected_date}}"
+                           onchange="this.form.submit()"/>
+
+                </div>
+            </div>
+
+        </div>
+    </form>
+    <div class="d-flex mt-5">
+        <table class="table table-bordered table-striped">
+            <thead>
+            <tr>
+                <td>S.no</td>
+                <td>Campaign ID</td>
+                <td>IO ID</td>
+                <td>Line Item ID</td>
+                <td>Impression</td>
+                <td>Clicks</td>
+                <td>Budget</td>
+                <td>CTR</td>
+            </tr>
+            </thead>
+            <tbody>
+            {% for line_item in line_items %}
+            {% report_value line_item selected_date as report %}
+            <tr>
+                <td>{{forloop.counter}}</td>
+                <td>{{line_item.io.campaign.campaign_id}}</td>
+                <td>{{line_item.io.io_id}}</td>
+                <td>{{line_item.item_id}}</td>
+                <form id='{{line_item.id}}'>
+                    {% csrf_token %}
+                    <td><input type="number" name="impression" class="form-control sm-input"
+                               value="{{report.impression}}"
+                               onchange="updateReport('{{line_item.id}}', this, '{{selected_date}}')" onfocusout="removeAttribute(this)"/>
+                        <div class="valid-feedback">
+                            Value Updated
+                        </div>
+                        <input type="hidden" value="{{selected_date}}" name="report_on">
+                    </td>
+                    <td>
+                        <input type="number" name="clicks" class="form-control sm-input" value="{{report.clicks}}"
+                               onchange="updateReport('{{line_item.id}}', this, '{{selected_date}}')">
+                        <div class="valid-feedback">
+                            Value Updated
+                        </div>
+                    </td>
+                    <td>
+                        <input type="number" name="budget" class="form-control sm-input" value="{{report.budget}}"
+                               onchange="updateReport('{{line_item.id}}', this, '{{selected_date}}')" onfocusout="removeAttribute(this)">
+                        <div class="valid-feedback">
+                            Value Updated
+                        </div>
+                    </td>
+                </form>
+                <td>{{report.ctr}} %</td>
+
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+<script>
+$(document).ready(function() {
+    $('.custom-select').select2();
+});
+
+$(function() {
+  $('#reportDate').daterangepicker({
+    singleDatePicker: true,
+    showDropdowns: true,
+    maxDate: moment(),
+    locale: {
+      format: 'YYYY-MM-DD'
+    }
+  },);
+});
+
+$('.sm-input').blur(function(e) {
+    e.target.classList.remove("is-valid")
+});
+
+function updateReport(line_item, item, report_on){
+
+    var csrf=$('input[name="csrfmiddlewaretoken"]').val();
+    var formData=$(`form#${line_item}`).serialize();
+
+    $.ajax({
+        url:`update-report/${line_item}/`,
+        method:'POST',
+        dataType:'JSON',
+        data:formData,
+        beforeSend: function (xhr, settings) {
+		        xhr.setRequestHeader("Authorization", 'Token '+csrf);
+		    },
+        success:function(response){
+            // res=JSON.parse(response.response);
+            item.classList.add("is-valid")
+        },
+        error:function(){
+
+        }
+    });
+}
+
+
+</script>
+{% endblock %}

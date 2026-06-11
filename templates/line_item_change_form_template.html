@@ -1,0 +1,102 @@
+{% extends 'admin/change_form.html' %}
+{% load i18n admin_urls static admin_modify %}
+
+{% block content %}
+<div class="d-flex">
+    <div class="col-12">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="d-flex mb-2">
+                    <div class="col-6 font-weight-bold">Advertiser ID</div>
+                    <div class="col-6">{{object.io.campaign.company.client_id}}</div>
+                </div>
+                <div class="d-flex mb-2">
+                    <div class="col-6 font-weight-bold">Campaign ID</div>
+                    <div class="col-6">{{object.io.campaign.campaign_id}}</div>
+                </div>
+                <div class="d-flex mb-2">
+                    <div class="col-6 font-weight-bold">Campaign Name</div>
+                    <div class="col-6">{{object.io.campaign.name}}</div>
+                </div>
+                <div class="d-flex mb-2">
+                    <div class="col-6 font-weight-bold">IO ID</div>
+                    <div class="col-6">{{object.io.order_id}}</div>
+                </div>
+                <div class="d-flex mb-2">
+                    <div class="col-6 font-weight-bold">IO Name</div>
+                    <div class="col-6">{{object.io.name}}</div>
+                </div>
+                <div class="d-flex mb-2">
+                    <div class="col-6 font-weight-bold">Line Item ID</div>
+                    <div class="col-6">{{object.item_id}}</div>
+                </div>
+                <div class="d-flex mb-2">
+                    <div class="col-6 font-weight-bold">Line Item Name</div>
+                    <div class="col-6">{{object.description}}</div>
+                </div>
+                <div class="d-flex mb-2">
+                    <div class="col-6 font-weight-bold">Start Date</div>
+                    <div class="col-6">{{object.start_date}}</div>
+                </div>
+                <div class="d-flex mb-2">
+                    <div class="col-6 font-weight-bold">End Date</div>
+                    <div class="col-6">{{object.end_date}}</div>
+                </div>
+                <div class="d-flex mb-2">
+                    <div class="col-6 font-weight-bold">Total Days</div>
+                    <div class="col-6">{{object.end_date}}</div>
+                </div>
+                <div class="d-flex mb-2">
+                    <div class="col-6 font-weight-bold">No. of days left</div>
+                    <div class="col-6">Advertiser</div>
+                </div>
+                <div class="d-flex mb-2">
+                    <div class="col-6 font-weight-bold">Target Impressions</div>
+                    <div class="col-6">{{object.volume}}</div>
+                </div>
+                <div class="d-flex mb-2">
+                    <div class="col-6 font-weight-bold">Achieved Impressions</div>
+                    <div class="col-6">{{object.total_impression}}</div>
+                </div>
+                <div class="d-flex mb-2">
+                    <div class="col-6 font-weight-bold">Remaining Impressions</div>
+                    <div class="col-6">Advertiser</div>
+                </div>
+                <div class="d-flex mb-2">
+                    <div class="col-6 font-weight-bold">Daily Target Impressions</div>
+                    <div class="col-6">Advertiser</div>
+                </div>
+            </div>
+            <div class="col-md-8">
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <thead>
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">Date</th>
+                            <th scope="col">Impressions</th>
+                            <th scope="col">Clicks</th>
+                            <th scope="col">CTR</th>
+                            <th scope="col">Budget</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for report in object.reports.all %}
+                        <tr>
+                            <td scope="col">{{forloop.counter}}</td>
+                            <td scope="col">{{report.report_on}}</td>
+                            <td scope="col">{{report.impression}}</td>
+                            <td scope="col">{{report.clicks}}</td>
+                            <td scope="col">{{report.ctr_calculation}}  %</td>
+                            <td scope="col">{{report.budget}}</td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

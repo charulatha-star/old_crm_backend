@@ -1,0 +1,331 @@
+{% extends "admin/base_site.html" %}
+{% load humanize %}
+{% load i18n admin_urls static admin_modify %}
+{% load static %}
+{% load reports %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+.title{
+    font-size:10px;
+    color: #999;
+    font-weight:600;
+}
+.title-desc{
+    font-size:12px;
+    font-weight:600;
+    color: #333;
+    margin-bottom: 5px;
+}
+</style>
+{% endblock %}
+{% block content %}
+<div id="content-main">
+    <div class="mt-3 mb-3">
+        <button onclick="window.history.back()" class="btn btn-primary">Go Back</button>
+    </div>
+    <div class="card">
+        <div class="card-header">
+            <h2>{{campaign.booking_id}} - {{campaign}}</h2>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-6">
+                    <div class="row">
+                        <div class="col-6 mb-4">
+                            <div class="text-secondary small">Company Name</div>
+                            <div class="font-weight-bold">{{campaign.campaign.company}}</div>
+                        </div>
+                        <div class="col-6 mb-4">
+                            <div class="text-secondary small">Company ID</div>
+                            <div class="font-weight-bold">{{campaign.campaign.company.client_id}}</div>
+                        </div>
+                        <div class="col-6 mb-4">
+                            <div class="text-secondary small">Campaign Name</div>
+                            <div class="font-weight-bold">
+                                {{campaign.campaign.name}}
+                            </div>
+                        </div>
+                        <div class="col-6 mb-4">
+                            <div class="text-secondary small">Campaign ID</div>
+                            <div class="font-weight-bold">
+                                {{campaign.campaign.get_campaign_id}}
+                            </div>
+                        </div>
+                        <div class="col-6 mb-4">
+                            <div class="text-secondary small">Flight Dates</div>
+                            <div class="font-weight-bold">
+                                {{campaign.start_date}} - {{campaign.end_date}}
+                            </div>
+                        </div>
+                        <div class="col-6 mb-4">
+
+                            <div class="text-secondary small">Status</div>
+                            <div class="font-weight-bold">
+                                <span class="badge badge-pill badge-{{campaign.status}}"> {{campaign.status}}</span>
+                            </div>
+
+
+
+                            <!-- <div class="text-secondary small">Status</div>
+                            <div class="font-weight-bold">
+                                <span class="badge badge-pill badge-{{campaign.status}}"> {{campaign.status}}</span>
+                            </div> -->
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="row">
+
+                        {% if show_budget %}
+                        <div class="col-6 mb-4">
+                            <div class="text-secondary small">Booked Volume</div>
+                            <div class="font-weight-bold">
+                                {{campaign.total_volume_booked | intcomma}}
+                            </div>
+                        </div>
+                        <div class="col-6 mb-4">
+                            <div class="text-secondary small">Delivered Volume</div>
+                            <div class="font-weight-bold">
+                                {{campaign.total_volume_delivered | intcomma}}
+                            </div>
+                        </div>
+                        <div class="col-6 mb-4">
+                            <div class="text-secondary small">Remaining Volume</div>
+                            <div class="font-weight-bold">
+                                {{campaign.remaining_volumes | intcomma}}
+                            </div>
+                        </div>
+                        <div class="col-6 mb-4">
+                            <div class="text-secondary small">Budget Booked</div>
+                            <div class="font-weight-bold">
+                                {{campaign.campaign.company.billing_currency.iso_code_3}}
+                                {{campaign.total_budget | intcomma}}
+                            </div>
+                        </div>
+                        <div class="col-6 mb-4">
+                            <div class="text-secondary small">Budget Spend</div>
+                            <div class="font-weight-bold">
+                                {{campaign.campaign.company.billing_currency.iso_code_3}}
+                                {{campaign.budget_spend |intcomma}}
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-12">
+                    <nav>
+                        <div class="nav nav-tabs" id="io-tab" role="tablist">
+                            {% for insertion_order in campaign.insertion_order.all %}
+                            <a
+                                    class="nav-item nav-link {% if forloop.first %} active{% endif %}"
+                                    id="{{insertion_order.id}}-tab"
+                                    data-toggle="tab"
+                                    href="#io-{{insertion_order.id}}"
+                                    role="tab"
+                                    aria-controls="io-{{insertion_order.id}}">
+                                <b>{{insertion_order.booking_id}} - {{insertion_order.name}}</b>
+                            </a>
+                            {% endfor %}
+                        </div>
+                    </nav>
+                    <div class="tab-content" id="io-tabContent">
+                        {% for insertion_order in campaign.insertion_order.all %}
+
+                        <div
+                                class="tab-pane fade {% if forloop.first %} show active {% endif %}"
+                                id="io-{{insertion_order.id}}"
+                                role="tabpanel"
+                                aria-labelledby="{{insertion_order.id}}-tab"
+                        >
+                            <div class="d-flex m-1" style="overflow: auto,">
+                                {% for io_details in insertion_order.io_details.all %}
+                                {% line_item_report io_details as line_item %}
+                                <div class="col-1 pl-1 pr-1" style="max-width:500px">
+                                    <div class="">
+                                        <div class="card-body">
+                                            <div class="card">
+                                                <div class="card-header">
+                                                    <h6 class="font-weight-bold">{{io_details.item_id}} -
+                                                        {{io_details.description}}</h6>
+                                                </div>
+                                                <div class="card-body row">
+                                                    <div class="col-6 mb-2 mt-2">
+                                                        <div class="">
+
+                                                            <div class="title">Status</div>
+                                                            <div class="title-desc">
+                                                                <span class="badge badge-pill badge-
+                                                                {% if io_details.start_date > today %}primary
+                                                                {% elif io_details.end_date < today %}secondary
+                                                                {% else %}success{% endif %}">
+                                                                {% if io_details.start_date > today %}Scheduled
+                                                                {% elif io_details.end_date < today %}Completed
+                                                                {% else %}Live{% endif %}
+                                                            </span>
+                                                        </div>
+
+                                                            <!-- <div class="title">Status</div>
+                                                            <div class="title-desc">
+                                                                <span class="badge badge-pill badge-{{io_details.status}}"> {{io_details.status}}</span>
+                                                            </div> -->
+                                                            
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-6 mb-2 mt-2">
+                                                        <div class="">
+                                                            <div class="title">Line Item ID</div>
+                                                            <div class="title-desc">{{io_details.item_id}}</div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-6 mb-2 mt-2">
+                                                        <div class="">
+                                                            <div class="title">Start Date</div>
+                                                            <div class="title-desc">{{io_details.start_date}}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-6 mb-2 mt-2">
+                                                        <div class="">
+                                                            <div class="title">End Date</div>
+                                                            <div class="title-desc">{{io_details.end_date}}</div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-12">
+                                                        <div class="d-flex justify-content-between">
+                                                            <div class="mb-2 mt-2">
+                                                                <div class="">
+                                                                    <div class="title">Booked Volume</div>
+                                                                    <div class="title-desc mt-2">
+                                                                        {{io_details.volume|intcomma}}
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="mb-2 mt-2">
+                                                                <div class=" text-center">
+                                                                    <div class="title">Delivered Volume</div>
+                                                                    <div class="title-desc  mt-2">
+                                                                        {{io_details.total_impression|intcomma}}
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="mb-2 mt-2">
+                                                                <div class="">
+                                                                    <div class="title">Remaining Volume</div>
+                                                                    <div class="title-desc mt-2">
+                                                                        {{line_item.remaining_impressions|intcomma}}
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-4 mb-2 mt-2">
+                                                        <div class="">
+                                                            <div class="title">Ad Format</div>
+                                                            <div class="title-desc">{{io_details.ad_type}}</div>
+                                                        </div>
+                                                    </div>
+                                                    {% if show_budget %}
+                                                    <div class="col-4 mb-2 mt-2">
+                                                        <div class="">
+                                                            <div class="title">Units Costs</div>
+                                                            <div class="title-desc">{{line_item.billing_currency}}
+                                                                {{io_details.unit_cost}}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-4 mb-2 mt-2">
+                                                        <div class="">
+                                                            <div class="title">Budget Spent</div>
+                                                            <div class="title-desc">
+                                                                {{line_item.billing_currency}}
+                                                                {{io_details.total_budget|floatformat:"2" |intcomma}}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    {% endif %}
+
+
+                                                    <div class="col-4 mb-2 mt-2">
+                                                        <div class="">
+                                                            <div class="title">Daily Target</div>
+                                                            <div class="title-desc">{{line_item.daily_target |intcomma}}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="col-4 mb-2 mt-2">
+                                                        <div class="">
+                                                            <div class="title">Total Days</div>
+                                                            <div class="title-desc">{{line_item.total_days}} Days</div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-4 mb-2 mt-2">
+                                                        <div class="">
+                                                            <div class="title">Remaining Days</div>
+                                                            <div class="title-desc">{{line_item.remaining_days}} Days
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                </div>
+                                            </div>
+                                            <table class="table text-center table-bordered">
+                                                <tr>
+                                                    <th>Date</th>
+                                                    <th>Impressions</th>
+                                                    <th>Clicks</th>
+                                                    <th>CTR</th>
+                                                    <!-- <th>Budget</th> -->
+                                                    {% if show_budget %}<th>Budget</th>{% endif %}
+
+                                                    {% if io_details.category.category.category %}
+                                                    {% if io_details.category.category.category.id is 2 %}
+                                                    <th>Viewability</th>
+                                                    {% else %}
+                                                    <th>Viewability</th>
+                                                    <th>Video Completion Rate</th>
+                                                    {% endif %}
+                                                    {% endif %}
+                                                </tr>
+                                                {% for report in line_item.reports %}
+                                                <tr>
+                                                    <td>{{report.date}}</td>
+                                                    <td>{{report.impression}}</td>
+                                                    <td>{{report.clicks}}</td>
+                                                    <td>{{report.ctr}}%</td>
+                                                    {% if show_budget %}
+                                                    <td>
+                                                        {{report.budget|floatformat:"2" |intcomma}}
+                                                        <small>{{line_item.billing_currency}}</small>
+                                                    </td>
+                                                    {% endif %}
+                                                    {% if io_details.category.category.category %}
+                                                    {% if io_details.category.category.category.id is 2 %}
+                                                    <th>{{report.viewability}}%</th>
+                                                    {% else %}
+                                                    <td>{{report.viewability}}%</td>
+                                                    <td>{{report.video_completion_rate }} %</td>
+                                                    {% endif %}
+                                                    {% endif %}
+                                                </tr>
+                                                {% endfor %}
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

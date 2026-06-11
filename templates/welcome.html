@@ -1,0 +1,717 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block extrastyle %}{{ block.super }}
+<link href="{% static 'custom_admin/css/dashboard.css' %}" rel="stylesheet" type="text/css"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js"></script>
+{% endblock %}
+
+{% block coltype %}colMS{% endblock %}
+
+{% block bodyclass %}{{ block.super }} dashboard{% endblock %}
+
+{% block breadcrumbs %}{% endblock %}
+{% load humanize %}
+{% load dashboard %}
+
+{% block content %}
+
+{% admin_dashboard request as admin_dashboard %}
+<div id="content-main">
+    <div class="container pd-x-0 pd-lg-x-10 pd-xl-x-0">
+
+        <!--  Campaign Details Start Here -->
+        <div class="row mg-b-30">
+            <div class="col-12">
+                <div class="d-sm-flex align-items-center justify-content-between mg-b-10 mg-lg-b-15 mg-xl-b-20">
+                    <div>
+                        <h4 class="mg-b-0 tx-spacing--1">Sub Campaigns</h4>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-md-3 col-lg-3">
+                <div class="card card-body">
+                    <h6 class="tx-uppercase tx-11 tx-spacing-1 tx-color-02 tx-semibold mg-b-8">Live Sub-Campaigns</h6>
+                    <div class="d-flex d-lg-block d-xl-flex align-items-end">
+                        <h3 class="tx-normal tx-rubik mg-b-0 mg-r-5 lh-1">
+                            {{admin_dashboard.campaign.live|default:0}}</h3>
+
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="col-12 col-md-3 col-lg-3">
+                <div class="card card-body">
+                    <h6 class="tx-uppercase tx-11 tx-spacing-1 tx-color-02 tx-semibold mg-b-8">Scheduled
+                        Sub-Campaigns</h6>
+                    <div class="d-flex d-lg-block d-xl-flex align-items-end">
+                        <h3 class="tx-normal tx-rubik mg-b-0 mg-r-5 lh-1">
+                            {{admin_dashboard.campaign.scheduled|default:0}}</h3>
+
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="col-12 col-md-3 col-lg-3">
+                <div class="card card-body">
+                    <h6 class="tx-uppercase tx-11 tx-spacing-1 tx-color-02 tx-semibold mg-b-8">Paused Sub-Campaigns</h6>
+                    <div class="d-flex d-lg-block d-xl-flex align-items-end">
+                        <h3 class="tx-normal tx-rubik mg-b-0 mg-r-5 lh-1">
+                            {{admin_dashboard.campaign.completed|default:0}}</h3>
+
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="col-12 col-md-3 col-lg-3">
+                <div class="card card-body">
+                    <h6 class="tx-uppercase tx-11 tx-spacing-1 tx-color-02 tx-semibold mg-b-8">Completed
+                        Sub-Campaigns</h6>
+                    <div class="d-flex d-lg-block d-xl-flex align-items-end">
+                        <h3 class="tx-normal tx-rubik mg-b-0 mg-r-5 lh-1">
+                            {{admin_dashboard.campaign.stopped|default:0}}</h3>
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        <!-- Campaign Details End Here -->
+
+        <!--  Volumes Details Start Here -->
+        <div class="row mg-b-30">
+            <div class="col-sm-12 col-lg-12">
+                <div class="d-sm-flex align-items-center justify-content-between mg-b-10 mg-lg-b-15 mg-xl-b-20">
+                    <div>
+                        <h4 class="mg-b-0 tx-spacing--1">Volume</h4>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-md-3 col-lg-3">
+                <div class="card card-body">
+                    <h6 class="tx-uppercase tx-11 tx-spacing-1 tx-color-02 tx-semibold mg-b-8">Delivered Yesterday
+                        (<span class="text-right text-primary font-weight-bold">{{admin_dashboard.date.yesterday|date:'d-M-Y' }}</span>)
+                    </h6>
+                    <div class="d-flex d-lg-block d-xl-flex align-items-end">
+                        <h3 class="tx-normal tx-rubik mg-b-0 mg-r-5 lh-1">
+                            {{admin_dashboard.volumes.yesterday|default:0|intcomma}}</h3>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-md-3 col-lg-3">
+                <div class="card card-body">
+                    <h6 class="tx-uppercase tx-11 tx-spacing-1 tx-color-02 tx-semibold mg-b-8">Delivered this month
+                        (<span class="text-right text-primary font-weight-bold">{{admin_dashboard.date.this_month|date:'M-Y' }}</span>)
+                    </h6>
+                    <div class="d-flex d-lg-block d-xl-flex align-items-end">
+                        <h3 class="tx-normal tx-rubik mg-b-0 mg-r-5 lh-1">
+                            {{admin_dashboard.volumes.this_month|default:0|intcomma}}</h3>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-md-3 col-lg-3">
+                <div class="card card-body">
+                    <h6 class="tx-uppercase tx-11 tx-spacing-1 tx-color-02 tx-semibold mg-b-8">Booked this month
+                        (<span class="text-right text-primary font-weight-bold">{{admin_dashboard.date.this_month|date:'M-Y' }}</span>)
+                    </h6>
+                    <div class="d-flex d-lg-block d-xl-flex align-items-end">
+                        <h3 class="tx-normal mg-b-0 mg-r-5 lh-1">
+                            {{admin_dashboard.volumes.this_month_booked|default:0|intcomma}}</h3>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-md-3 col-lg-3">
+                <div class="card card-body">
+                    <h6 class="tx-uppercase tx-11 tx-spacing-1 tx-color-02 tx-semibold mg-b-8">Click Delivered this
+                        month
+                        (<span class="text-right text-primary font-weight-bold">{{admin_dashboard.date.this_month|date:'M-Y' }}</span>)
+                    </h6>
+                    <div class="d-flex d-lg-block d-xl-flex align-items-end">
+                        <h3 class="tx-normal tx-rubik mg-b-0 mg-r-5 lh-1">
+                            {{admin_dashboard.volumes.clicks|default:0|intcomma}}</h3>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        <!--  Volumes Details End Here -->
+
+        <!--  Tickets Details Start Here -->
+        <div class="row mg-b-30">
+            <div class="col-sm-12 col-lg-12">
+                <div class="d-sm-flex align-items-center justify-content-between mg-b-10 mg-lg-b-15 mg-xl-b-20">
+                    <div>
+                        <h4 class="mg-b-0 tx-spacing--1">Tickets</h4>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-md-3 col-lg-3">
+                <div class="card card-body">
+                    <h6 class="tx-uppercase tx-11 tx-spacing-1 tx-color-02 tx-semibold mg-b-8">Open tickets</h6>
+                    <div class="d-flex d-lg-block d-xl-flex align-items-end">
+                        <h3 class="tx-normal tx-rubik mg-b-0 mg-r-5 lh-1">
+                            {{admin_dashboard.tickets.budget_next_month|default:0}}</h3>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-md-3 col-lg-3">
+                <div class="card card-body">
+                    <h6 class="tx-uppercase tx-11 tx-spacing-1 tx-color-02 tx-semibold mg-b-8">Tickets in Progress</h6>
+                    <div class="d-flex d-lg-block d-xl-flex align-items-end">
+                        <h3 class="tx-normal tx-rubik mg-b-0 mg-r-5 lh-1">
+                            {{admin_dashboard.tickets.budget_last_month|default:0}}</h3>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-md-3 col-lg-3">
+                <div class="card card-body">
+                    <h6 class="tx-uppercase tx-11 tx-spacing-1 tx-color-02 tx-semibold mg-b-8">Solved tickets</h6>
+                    <div class="d-flex d-lg-block d-xl-flex align-items-end">
+                        <h3 class="tx-normal tx-rubik mg-b-0 mg-r-5 lh-1">
+                            {{admin_dashboard.tickets.budget_next_month|default:0}}</h3>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-md-3 col-lg-3">
+                <div class="card card-body">
+                    <h6 class="tx-uppercase tx-11 tx-spacing-1 tx-color-02 tx-semibold mg-b-8">Total Tickets Raised</h6>
+                    <div class="d-flex d-lg-block d-xl-flex align-items-end">
+                        <h3 class="tx-normal tx-rubik mg-b-0 mg-r-5 lh-1">
+                            {{admin_dashboard.tickets.budget_this_month|default:0}}</h3>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        <!--  Tickets Details End Here -->
+
+        <!--  Actual Spend Start Here -->
+        <div class="row mg-b-30">
+            <div class="col-12">
+                <div class="d-sm-flex align-items-center justify-content-between mg-b-10 mg-lg-b-15 mg-xl-b-20">
+                    <div>
+                        <h4 class="mg-b-0 tx-spacing--1">Actual Spend</h4>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-md-3 col-lg-3">
+                <div class="card card-body">
+                    <h6 class="tx-uppercase tx-11 tx-spacing-1 tx-color-02 tx-semibold mg-b-8">Yesterday (<span
+                            class="text-right text-primary font-weight-bold">{{admin_dashboard.date.yesterday|date:'d-M-Y' }}</span>)
+                    </h6>
+                    <div class="d-flex d-lg-block d-xl-flex align-items-end">
+                        <h3 class="tx-normal tx-rubik mg-b-0 mg-r-5 lh-1">
+                            {{admin_dashboard.spend.yesterday|default:0|floatformat|intcomma}}</h3>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-md-3 col-lg-3">
+                <div class="card card-body">
+                    <h6 class="tx-uppercase tx-11 tx-spacing-1 tx-color-02 tx-semibold mg-b-8">Till Today (<span
+                            class="text-right text-primary font-weight-bold">{{admin_dashboard.date.this_month|date:'M-Y' }}</span>)
+                    </h6>
+                    <div class="d-flex d-lg-block d-xl-flex align-items-end">
+                        <h3 class="tx-normal tx-rubik mg-b-0 mg-r-5 lh-1">
+                            {{admin_dashboard.spend.this_month|default:0|floatformat|intcomma}}</h3>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-md-3 col-lg-3">
+                <div class="card card-body">
+                    <h6 class="tx-uppercase tx-11 tx-spacing-1 tx-color-02 tx-semibold mg-b-8">Last month (<span
+                            class="text-right text-primary font-weight-bold">{{admin_dashboard.date.last_month|date:'M Y' }}</span>)
+                    </h6>
+                    <div class="d-flex d-lg-block d-xl-flex align-items-end">
+                        <h3 class="tx-normal tx-rubik mg-b-0 mg-r-5 lh-1">
+                            {{admin_dashboard.spend.last_month|default:0|floatformat|intcomma}}</h3>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-md-3 col-lg-3">
+                <div class="card card-body">
+                    <h6 class="tx-uppercase tx-11 tx-spacing-1 tx-color-02 tx-semibold mg-b-8">This Year (<span
+                            class="text-right text-primary font-weight-bold">{{admin_dashboard.date.this_month|date:'Y' }}</span>)
+                    </h6>
+                    <div class="d-flex d-lg-block d-xl-flex align-items-end">
+                        <h3 class="tx-normal tx-rubik mg-b-0 mg-r-5 lh-1">
+                            {{admin_dashboard.spend.this_year|default:0|floatformat|intcomma}}</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Actual Spend End Here -->
+
+        <!--  Budget Details Start Here -->
+        <div class="row mg-b-30">
+            <div class="col-12">
+                <div class="d-sm-flex align-items-center justify-content-between mg-b-10 mg-lg-b-15 mg-xl-b-20">
+                    <div>
+                        <h4 class="mg-b-0 tx-spacing--1">Budget</h4>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-md-3 col-lg-3">
+                <div class="card card-body">
+                    <h6 class="tx-uppercase tx-11 tx-spacing-1 tx-color-02 tx-semibold mg-b-8">Spend Yesterday (<span
+                            class="text-right text-primary font-weight-bold">{{admin_dashboard.date.yesterday|date:'d-M-Y' }}</span>)
+                    </h6>
+
+                    <div class="d-flex d-lg-block d-xl-flex align-items-end">
+                        <table class="table table-borderless table-striped mb-0">
+                            <tbody>
+                            {% for country in admin_dashboard.budget %}
+
+                            <tr>
+                                <td>{{country.iso_code_3}}</td>
+                                <th>{{country.currency_symbols}}
+                                    {{country.total_budget_yesterday|default:0|floatformat:"2"|intcomma}}
+                                </th>
+                            </tr>
+                            {% endfor %}
+
+                            <tr>
+                                <th class="tx-bold">Total</th>
+                                <th class="tx-bold">
+                                    ₹{{admin_dashboard.total_budget.total_budget_yesterday|default:0|floatformat:"2"|intcomma}}
+                                </th>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="col-12 col-md-3 col-lg-3">
+                <div class="card card-body">
+                    <h6 class="tx-uppercase tx-11 tx-spacing-1 tx-color-02 tx-semibold mg-b-8">Estimated Spend (<span
+                            class="text-right text-primary font-weight-bold">{{admin_dashboard.date.this_month|date:'M-Y' }}</span>)
+                    </h6>
+                    <div class="d-flex d-lg-block d-xl-flex align-items-end">
+                        <table class="table table-borderless table-striped mb-0">
+                            <tbody>
+                            {% for country in admin_dashboard.budget %}
+
+                            <tr>
+                                <td>{{country.iso_code_3}}</td>
+                                <th>{{country.currency_symbols}}
+                                    {{country.total_budget_this_month|default:0|floatformat:"2"|intcomma}}
+                                </th>
+                            </tr>
+                            {% endfor %}
+                            <tr>
+                                <th class="tx-bold">Total</th>
+                                <th class="tx-bold">
+                                    ₹{{admin_dashboard.total_budget.total_budget_this_month|default:0|floatformat:"2"|intcomma}}
+                                </th>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="col-12 col-md-3 col-lg-3">
+                <div class="card card-body">
+                    <h6 class="tx-uppercase tx-11 tx-spacing-1 tx-color-02 tx-semibold mg-b-8">Planned Next
+                        month (<span class="text-right text-primary font-weight-bold">{{admin_dashboard.date.next_month|date:'M Y' }}</span>)
+                    </h6>
+                    <div class="d-flex d-lg-block d-xl-flex align-items-end">
+                        <table class="table table-borderless table-striped mb-0">
+                            <tbody>
+                            {% for country in admin_dashboard.budget %}
+
+                            <tr>
+                                <td>{{country.iso_code_3}}</td>
+                                <th>{{country.currency_symbols}}
+                                    {{country.total_budget_next_month|default:0|floatformat:"2"}}
+                                </th>
+                            </tr>
+                            {% endfor %}
+                            <tr>
+                                <th class="tx-bold">Total</th>
+                                <th class="tx-bold">
+                                    <b>₹{{admin_dashboard.total_budget.total_budget_next_month|default:0|floatformat:"2"|intcomma}}</b>
+                                </th>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="col-12 col-md-3 col-lg-3">
+                <div class="card card-body">
+                    <h6 class="tx-uppercase tx-11 tx-spacing-1 tx-color-02 tx-semibold mg-b-8">Spend Last month (<span
+                            class="text-right text-primary font-weight-bold">{{admin_dashboard.date.last_month|date:'M-Y' }}</span>)
+                    </h6>
+                    <div class="d-flex d-lg-block d-xl-flex align-items-end">
+                        <table class="table table-borderless table-striped mb-0">
+                            <tbody>
+                            {% for country in admin_dashboard.budget %}
+
+                            <tr>
+                                <td>{{country.iso_code_3}}</td>
+                                <th>{{country.currency_symbols}}
+                                    {{country.total_budget_last_month|default:0|floatformat:"2"}}
+                                </th>
+                            </tr>
+                            {% endfor %}
+                            <tr>
+                                <th class="tx-bold">Total</th>
+                                <th class="tx-bold">
+                                    ₹{{admin_dashboard.total_budget.total_budget_last_month|default:0|floatformat:"2"|intcomma}}
+                                </th>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Budget Details End Here -->
+
+        <!--  Invoice Details Start Here -->
+        <div class="row mg-b-30">
+            <div class="col-sm-12 col-lg-12">
+                <div class="d-sm-flex align-items-center justify-content-between mg-b-10 mg-lg-b-15 mg-xl-b-20">
+                    <div>
+                        <h4 class="mg-b-0 tx-spacing--1">Invoice</h4>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-md-3 col-lg-3">
+                <div class="card card-body">
+                    <h6 class="tx-uppercase tx-11 tx-spacing-1 tx-color-02 tx-semibold mg-b-8">UnPaid Transactions(<span
+                            class="text-primary">{{admin_dashboard.date.this_month|date:'M-Y' }}</span>)</h6>
+                    <div class="d-flex d-lg-block d-xl-flex align-items-end">
+                        <table class="table table-borderless table-striped mb-0">
+                            <tbody>
+                            {% for country in admin_dashboard.budget %}
+
+                            <tr>
+                                <td>{{country.iso_code_3}}</td>
+                                <th>{{country.currency_symbols}}
+                                    {{country.total_budget_this_month|default:0|floatformat:"2"}}
+                                </th>
+                            </tr>
+                            {% endfor %}
+                            <tr>
+                                <th class="tx-bold">Total</th>
+                                <th class="tx-bold">
+                                    ₹{{admin_dashboard.total_budget.total_budget_yesterday|default:0|floatformat:"2"|intcomma}}
+                                </th>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-md-3 col-lg-3">
+                <div class="card card-body">
+                    <h6 class="tx-uppercase tx-11 tx-spacing-1 tx-color-02 tx-semibold mg-b-8">Invoiced & Not Paid
+                        (<span
+                                class="text-primary">Overall</span>)</h6>
+                    <div class="d-flex d-lg-block d-xl-flex align-items-end">
+                        <table class="table table-borderless table-striped mb-0">
+                            <tbody>
+                            {% for country in admin_dashboard.invoice %}
+
+                            <tr>
+                                <td>{{country.iso_code_3}}</td>
+                                <th>{{country.currency_symbols}}
+                                    {{country.not_paid|default:0|floatformat:"2"}}
+                                </th>
+                            </tr>
+                            {% endfor %}
+                             <tr>
+                                <th class="tx-bold">Total</th>
+                                <th class="tx-bold">
+                                    ₹{{admin_dashboard.total_invoice.total_not_paid|default:0|floatformat:"2"|intcomma}}
+                                </th>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-md-3 col-lg-3">
+                <div class="card card-body">
+                    <h6 class="tx-uppercase tx-11 tx-spacing-1 tx-color-02 tx-semibold mg-b-8">Last month Invoiced
+                        (<span
+                                class="text-primary">{{admin_dashboard.date.last_month|date:'M-Y' }}</span>)</h6>
+                    <div class="d-flex d-lg-block d-xl-flex align-items-end">
+                        <table class="table table-borderless table-striped mb-0">
+                            <tbody>
+                            {% for country in admin_dashboard.invoice %}
+
+                            <tr>
+                                <td>{{country.iso_code_3}}</td>
+                                <th>{{country.currency_symbols}}
+                                    {{country.last_month|default:0|floatformat:"2"}}
+                                </th>
+                            </tr>
+                            {% endfor %}
+                             <tr>
+                                <th class="tx-bold">Total</th>
+                                <th class="tx-bold">
+                                    ₹{{admin_dashboard.total_invoice.total_last_month|default:0|floatformat:"2"|intcomma}}
+                                </th>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-md-3 col-lg-3">
+                <div class="card card-body">
+                    <h6 class="tx-uppercase tx-11 tx-spacing-1 tx-color-02 tx-semibold mg-b-8">Annual Invoiced (<span
+                            class="text-primary">{{admin_dashboard.date.this_month|date:'Y' }}</span>)</h6>
+                    <div class="d-flex d-lg-block d-xl-flex align-items-end">
+                        <table class="table table-borderless table-striped mb-0">
+                            <tbody>
+                            {% for country in admin_dashboard.invoice %}
+
+                            <tr>
+                                <td>{{country.iso_code_3}}</td>
+                                <th>{{country.currency_symbols}}
+                                    {{country.this_year|default:0|floatformat:"2"}}
+                                </th>
+                            </tr>
+                            {% endfor %}
+                             <tr>
+                                <th class="tx-bold">Total</th>
+                                <th class="tx-bold">
+                                    ₹{{admin_dashboard.total_invoice.total_this_year|default:0|floatformat:"2"|intcomma}}
+                                </th>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        <!-- Invoice Details End Here -->
+
+        <div class="row mg-b-30">
+            <div class="col-12 col-lg-12">
+                <div class="d-sm-flex align-items-center justify-content-between mg-b-10 mg-lg-b-15 mg-xl-b-20">
+                    <div>
+                        <h4 class="mg-b-0 tx-spacing--1">Top Performing Line Items</h4>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-striped table-bordered">
+                        <thead>
+                        <tr>
+                            <td>ID</td>
+                            <td>Name</td>
+                            <td>Booked Volume</td>
+                            <td>Delivered Volume</td>
+                            <td>CTR %</td>
+                            <td>End Date</td>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for line_item in admin_dashboard.top_performing_campaign %}
+                        <tr>
+                            <td>{{line_item.item_id}}</td>
+                            <td>{{line_item.description}}</td>
+                            <td>{{line_item.volume|intcomma}}</td>
+                            <td>{{line_item.total_impression|intcomma}}</td>
+                            <td>{{line_item.ctr|floatformat:"2"}}%</td>
+                            <td>{{line_item.end_date}}</td>
+                        </tr>
+                        {% endfor %}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+            </div>
+            <div class="col-12 col-lg-12">
+                <div class="d-sm-flex align-items-center justify-content-between mg-b-10 mg-lg-b-15 mg-xl-b-20">
+                    <div>
+                        <h4 class="mg-b-0 tx-spacing--1">Closing Soon Campaigns On this Month</h4>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-striped table-bordered">
+                        <thead>
+                        <tr>
+                            <td>ID</td>
+                            <td>Name</td>
+                            <td>Booked Volume</td>
+                            <td>Delivered Volume</td>
+                            <td>Days Remaining</td>
+                            <td>End Date</td>
+                            <td></td>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for line_item in admin_dashboard.closing_campaign %}
+                        <tr>
+                            <td>{{line_item.item_id}}</td>
+                            <td>{{line_item.description}}</td>
+                            <td>{{line_item.volume|default:0|intcomma}}</td>
+                            <td>{{line_item.total_impression|default:0|intcomma}}</td>
+                            <td>{{line_item.end_date|days_until}}</td>
+                            <td>{{line_item.end_date}}</td>
+                            <td><a href="/insertion_order/subcampaign/{{line_item.id}}/view-report/"
+                                   class="btn btn-sm btn-outline-secondary">View</a></td>
+                        </tr>
+                        {% endfor %}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+            </div>
+        </div>
+        <div class="row mg-b-30">
+
+            <div class="col-lg-12 col-xl-12 ">
+                <div class="mg-b-20 mg-lg-b-25 mg-xl-b-30">
+                    <div class="row">
+                        <div class="col-6 col-md-8">
+                            <h4 class="mg-b-0 tx-spacing--1">Campaign Budget Spend(Last 31 Days)</h4>
+                        </div>
+                        <div class="col-6 col-md-4 mg-b-0">
+                            <form>
+                                <div class="form-group">
+                                    <select class="custom-select" id="company" name="country"
+                                            onchange="this.form.submit()">
+                                        {% for country in admin_dashboard.country %}
+                                        <option
+                                                value="{{country.id}}"
+                                                {% if admin_dashboard.selected_country.id is country.id%} selected
+                                                {%endif%}
+                                        >
+                                            {{country.title}} {{country.currency_symbols}}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card mg-b-10">
+                                <div>
+                                    <canvas id="myChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    var order_count = [];
+
+    var labels = [];
+    {% for order in admin_dashboard.last_30_days %}
+        order_count.push({{order.budget |floatformat:"2" }})
+        labels.push("{{order.day | date:'d / M'}}")
+    {% endfor %}
+
+    var ctx = document.getElementById('myChart').getContext('2d');
+    var myChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: 'Budget {{admin_dashboard.selected_country.iso_code_3}}',
+                    data: order_count,
+                    borderColor: '#0a6feb',
+                    backgroundColor: '#2783f3',
+                },
+            ]
+        },
+        options: {
+            responsive: true,
+            title:{
+            display:true,
+            text:"Campaign Budget Spend ({{admin_dashboard.selected_country.title}} {{admin_dashboard.selected_country.currency_symbols}})"
+            }
+        }
+    });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</script>
+
+{% endblock %}
+
+{% block sidebar %}
+
+{% endblock %}

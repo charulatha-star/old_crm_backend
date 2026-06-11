@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<p>Dear {{request.name}},</p>
+<p>Thanks for Choosing with us</p>
+
+<p>This is in regarding to your Campaign Request on the Merchant Website <a href="billiontnags.com">Billiontags.com</a>
+</p>
+<h3>Your Campaign Request Details</h3>
+<p>{{request.body_of_content | safe}}</p>
+
+<p>Regards,</p>
+<p>Jegatheeswaran, M<br>
+    Billiontags Creations Pvt. Ltd<br>
+    Email: <a href="mailto:jegatheeshwaran@billiontags.com">jegatheeshwaran@billiontags.com</a>
+    <br>
+    Website: <a href="billiontags.com">billiontags.com</a>
+</p>
+</body>
+</html>

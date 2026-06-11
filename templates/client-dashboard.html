@@ -1,0 +1,548 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block extrastyle %}{{ block.super }}
+<link href="{% static 'custom_admin/css/dashboard.css' %}" rel="stylesheet" type="text/css"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js"></script>
+{% endblock %}
+
+{% block coltype %}colMS{% endblock %}
+
+{% block bodyclass %}{{ block.super }} dashboard{% endblock %}
+
+{% block breadcrumbs %}{% endblock %}
+{% load humanize %}
+{% load dashboard %}
+
+{% block content %}
+{% client_dashboard request.user as admin_dashboard %}
+<div id="content-main">
+    <div class="container pd-x-0 pd-lg-x-10 pd-xl-x-0">
+
+        <!--  Campaign Details Start Here -->
+        <div class="row mg-b-30">
+            <div class="col-12">
+                <div class="d-sm-flex align-items-center justify-content-between mg-b-10 mg-lg-b-15 mg-xl-b-20">
+                    <div>
+                        <h4 class="mg-b-0 tx-spacing--1">Sub Campaigns</h4>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-6 col-lg-3">
+                <div class="card card-body">
+                    <h6 class="tx-uppercase tx-11 tx-spacing-1 tx-color-02 tx-semibold mg-b-8">Live Sub-Campaigns</h6>
+                    <div class="d-flex d-lg-block d-xl-flex align-items-end">
+                        <h3 class="tx-normal tx-rubik mg-b-0 mg-r-5 lh-1">
+                            {{admin_dashboard.campaign.live|default:0}}</h3>
+
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="col-6 col-lg-3">
+                <div class="card card-body">
+                    <h6 class="tx-uppercase tx-11 tx-spacing-1 tx-color-02 tx-semibold mg-b-8">Scheduled Sub-Campaigns</h6>
+                    <div class="d-flex d-lg-block d-xl-flex align-items-end">
+                        <h3 class="tx-normal tx-rubik mg-b-0 mg-r-5 lh-1">
+                            {{admin_dashboard.campaign.scheduled|default:0}}</h3>
+
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="col-6 col-lg-3">
+                <div class="card card-body">
+                    <h6 class="tx-uppercase tx-11 tx-spacing-1 tx-color-02 tx-semibold mg-b-8">Paused Sub-Campaigns</h6>
+                    <div class="d-flex d-lg-block d-xl-flex align-items-end">
+                        <h3 class="tx-normal tx-rubik mg-b-0 mg-r-5 lh-1">
+                            {{admin_dashboard.campaign.completed|default:0}}</h3>
+
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="col-6 col-lg-3">
+                <div class="card card-body">
+                    <h6 class="tx-uppercase tx-11 tx-spacing-1 tx-color-02 tx-semibold mg-b-8">Completed Sub-Campaigns</h6>
+                    <div class="d-flex d-lg-block d-xl-flex align-items-end">
+                        <h3 class="tx-normal tx-rubik mg-b-0 mg-r-5 lh-1">
+                            {{admin_dashboard.campaign.stopped|default:0}}</h3>
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        <!-- Campaign Details End Here -->
+
+        <!--  Budget Details Start Here -->
+        <div class="row mg-b-30">
+            <div class="col-12">
+                <div class="d-sm-flex align-items-center justify-content-between mg-b-10 mg-lg-b-15 mg-xl-b-20">
+                    <div>
+                        <h4 class="mg-b-0 tx-spacing--1">Budget</h4>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-6 col-lg-3">
+                <div class="card card-body">
+                    <h6 class="tx-uppercase tx-11 tx-spacing-1 tx-color-02 tx-semibold mg-b-8">Spend Yesterday (<span class="text-right text-primary font-weight-bold">{{admin_dashboard.date.yesterday|date:'d-M-Y' }}</span>)</h6>
+                    <div class="d-flex d-lg-block d-xl-flex align-items-end">
+                        <h3 class="tx-normal tx-rubik mg-b-0 mg-r-5 lh-1">
+                            <small>{{admin_dashboard.currency_symbols}}</small>
+                            {{admin_dashboard.budget.yesterday|default:0|intcomma}}</h3>
+
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="col-6 col-lg-3">
+                <div class="card card-body">
+                    <h6 class="tx-uppercase tx-11 tx-spacing-1 tx-color-02 tx-semibold mg-b-8">Estimated Spend (<span class="text-right text-primary font-weight-bold">{{admin_dashboard.date.this_month|date:'M-Y' }}</span>)</h6>
+                    <div class="d-flex d-lg-block d-xl-flex align-items-end">
+                        <h3 class="tx-normal tx-rubik mg-b-0 mg-r-5 lh-1">
+                            <small>{{admin_dashboard.currency_symbols}}</small>
+                            {{admin_dashboard.budget.this_month|default:0|intcomma}}</h3>
+
+                    </div>
+
+                </div>
+                </div>
+
+            <div class="col-6 col-lg-3">
+                <div class="card card-body">
+                    <h6 class="tx-uppercase tx-11 tx-spacing-1 tx-color-02 tx-semibold mg-b-8">Planned Next
+                        month (<span class="text-right text-primary font-weight-bold">{{admin_dashboard.date.next_month|date:'M Y' }}</span>)</h6>
+                    <div class="d-flex d-lg-block d-xl-flex align-items-end">
+                        <h3 class="tx-normal tx-rubik mg-b-0 mg-r-5 lh-1">
+                            <small>{{admin_dashboard.currency_symbols}}</small>
+                            {{admin_dashboard.budget.next_month|default:0|intcomma}}</h3>
+
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="col-6 col-lg-3">
+                <div class="card card-body">
+                    <h6 class="tx-uppercase tx-11 tx-spacing-1 tx-color-02 tx-semibold mg-b-8">Spend Last month (<span class="text-right text-primary font-weight-bold">{{admin_dashboard.date.last_month|date:'M-Y' }}</span>)</h6>
+                    <div class="d-flex d-lg-block d-xl-flex align-items-end">
+                        <h3 class="tx-normal tx-rubik mg-b-0 mg-r-5 lh-1">
+                            <small>{{admin_dashboard.currency_symbols}}</small>
+                            {{admin_dashboard.budget.last_month|default:0|intcomma}}</h3>
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        <!-- Budget Details End Here -->
+
+        <!--  Invoice Details Start Here -->
+        <div>
+<!--        <div class="row mg-b-30">-->
+            <!--            <div class="col-sm-12 col-lg-12">-->
+            <!--                <div class="d-sm-flex align-items-center justify-content-between mg-b-10 mg-lg-b-15 mg-xl-b-20">-->
+            <!--                    <div>-->
+            <!--                        <h4 class="mg-b-0 tx-spacing&#45;&#45;1">Invoice</h4>-->
+            <!--                    </div>-->
+            <!--                </div>-->
+            <!--            </div>-->
+
+            <!--            <div class="col-6 col-lg-3">-->
+            <!--                <div class="card card-body">-->
+            <!--                    <h6 class="tx-uppercase tx-11 tx-spacing-1 tx-color-02 tx-semibold mg-b-8">UnPaid Transactions(<span class="text-primary" >{{admin_dashboard.date.this_month|date:'M-Y' }}</span>)</h6>-->
+            <!--                    <div class="d-flex d-lg-block d-xl-flex align-items-end">-->
+            <!--                        <h3 class="tx-normal tx-rubik mg-b-0 mg-r-5 lh-1">-->
+            <!--                            <small>{{admin_dashboard.currency_symbols}}</small>-->
+            <!--                            {{admin_dashboard.budget.this_month|default:0|intcomma}}</h3>-->
+            <!--                    </div>-->
+            <!--                </div>-->
+            <!--            </div>-->
+
+            <!--            <div class="col-6 col-lg-3">-->
+            <!--                <div class="card card-body">-->
+            <!--                    <h6 class="tx-uppercase tx-11 tx-spacing-1 tx-color-02 tx-semibold mg-b-8">Invoiced & Not Paid (<span class="text-primary" >Overall</span>)</h6>-->
+            <!--                    <div class="d-flex d-lg-block d-xl-flex align-items-end">-->
+            <!--                        <h3 class="tx-normal tx-rubik mg-b-0 mg-r-5 lh-1">-->
+            <!--                            <small>{{admin_dashboard.currency_symbols}}</small>-->
+            <!--                            {{admin_dashboard.invoice.not_paid|default:0|floatformat:2|intcomma}}</h3>-->
+            <!--                    </div>-->
+            <!--                </div>-->
+            <!--            </div>-->
+
+            <!--            <div class="col-6 col-lg-3">-->
+            <!--                <div class="card card-body">-->
+            <!--                    <h6 class="tx-uppercase tx-11 tx-spacing-1 tx-color-02 tx-semibold mg-b-8">Last month Invoiced (<span class="text-primary" >{{admin_dashboard.date.last_month|date:'M-Y' }}</span>)</h6>-->
+            <!--                    <div class="d-flex d-lg-block d-xl-flex align-items-end">-->
+            <!--                        <h3 class="tx-normal tx-rubik mg-b-0 mg-r-5 lh-1">-->
+            <!--                            <small>{{admin_dashboard.currency_symbols}}</small>-->
+            <!--                            {{admin_dashboard.invoice.last_month|default:0|floatformat:2|intcomma}}</h3>-->
+            <!--                    </div>-->
+            <!--                </div>-->
+            <!--            </div>-->
+
+            <!--            <div class="col-6 col-lg-3">-->
+            <!--                <div class="card card-body">-->
+            <!--                    <h6 class="tx-uppercase tx-11 tx-spacing-1 tx-color-02 tx-semibold mg-b-8">Annual Invoiced (<span class="text-primary" >{{admin_dashboard.date.this_month|date:'Y' }}</span>)</h6>-->
+            <!--                    <div class="d-flex d-lg-block d-xl-flex align-items-end">-->
+            <!--                        <h3 class="tx-normal tx-rubik mg-b-0 mg-r-5 lh-1">-->
+            <!--                            <small>{{admin_dashboard.currency_symbols}}</small>-->
+            <!--                            {{admin_dashboard.invoice.this_year|default:0|floatformat:2|intcomma}}</h3>-->
+            <!--                    </div>-->
+            <!--                </div>-->
+            <!--            </div>-->
+
+            <!--        </div>-->
+            </div>
+        <!--  Invoice Details End Here -->
+
+        <!--  Volumes Details Start Here -->
+        <div class="row mg-b-30">
+            <div class="col-sm-12 col-lg-12">
+                <div class="d-sm-flex align-items-center justify-content-between mg-b-10 mg-lg-b-15 mg-xl-b-20">
+                    <div>
+                        <h4 class="mg-b-0 tx-spacing--1">Volume</h4>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-6 col-lg-3">
+                <div class="card card-body">
+                    <p class="text-primary font-weight-bold">{{admin_dashboard.date.yesterday|date:'d-M-Y' }}</p>
+                    <h6 class="tx-uppercase tx-11 tx-spacing-1 tx-color-02 tx-semibold mg-b-8">Delivered Yesterday</h6>
+                    <div class="d-flex d-lg-block d-xl-flex align-items-end">
+                        <h3 class="tx-normal tx-rubik mg-b-0 mg-r-5 lh-1">
+                            {{admin_dashboard.volumes.yesterday|default:0|intcomma}}</h3>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-6 col-lg-3">
+                <div class="card card-body">
+                    <p class="text-primary font-weight-bold">{{admin_dashboard.date.this_month|date:'d-M-Y' }}</p>
+                    <h6 class="tx-uppercase tx-11 tx-spacing-1 tx-color-02 tx-semibold mg-b-8">Delivered this
+                        month </h6>
+                    <div class="d-flex d-lg-block d-xl-flex align-items-end">
+                        <h3 class="tx-normal tx-rubik mg-b-0 mg-r-5 lh-1">
+                            {{admin_dashboard.volumes.this_month|default:0|intcomma}}</h3>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-6 col-lg-3">
+                <div class="card card-body">
+                    <p class="text-primary font-weight-bold">{{admin_dashboard.date.this_month|date:'d-M-Y' }}</p>
+                    <h6 class="tx-uppercase tx-11 tx-spacing-1 tx-color-02 tx-semibold mg-b-8">Booked this month</h6>
+                    <div class="d-flex d-lg-block d-xl-flex align-items-end">
+                        <h3 class="tx-normal mg-b-0 mg-r-5 lh-1">
+                            {{admin_dashboard.volumes.this_month_booked|default:0|intcomma}}</h3>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-6 col-lg-3">
+                <div class="card card-body">
+                    <p class="text-primary font-weight-bold">{{admin_dashboard.date.this_month|date:'d-M-Y' }}</p>
+                    <h6 class="tx-uppercase tx-11 tx-spacing-1 tx-color-02 tx-semibold mg-b-8">Click Delivered this
+                        month</h6>
+                    <div class="d-flex d-lg-block d-xl-flex align-items-end">
+                        <h3 class="tx-normal tx-rubik mg-b-0 mg-r-5 lh-1">
+                            {{admin_dashboard.volumes.clicks|default:0|intcomma}}</h3>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        <!--  Volumes Details End Here -->
+
+        <!--  Tickets Details Start Here -->
+        <div class="row mg-b-30">
+            <div class="col-sm-12 col-lg-12">
+                <div class="d-sm-flex align-items-center justify-content-between mg-b-10 mg-lg-b-15 mg-xl-b-20">
+                    <div>
+                        <h4 class="mg-b-0 tx-spacing--1">Tickets</h4>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-6 col-lg-3">
+                <div class="card card-body">
+                    <h6 class="tx-uppercase tx-11 tx-spacing-1 tx-color-02 tx-semibold mg-b-8">Open tickets</h6>
+                    <div class="d-flex d-lg-block d-xl-flex align-items-end">
+                        <h3 class="tx-normal tx-rubik mg-b-0 mg-r-5 lh-1">
+                            {{admin_dashboard.tickets.budget_next_month|default:0}}</h3>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-6 col-lg-3">
+                <div class="card card-body">
+                    <h6 class="tx-uppercase tx-11 tx-spacing-1 tx-color-02 tx-semibold mg-b-8">Tickets in Progress</h6>
+                    <div class="d-flex d-lg-block d-xl-flex align-items-end">
+                        <h3 class="tx-normal tx-rubik mg-b-0 mg-r-5 lh-1">
+                            {{admin_dashboard.tickets.budget_last_month|default:0}}</h3>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-6 col-lg-3">
+                <div class="card card-body">
+                    <h6 class="tx-uppercase tx-11 tx-spacing-1 tx-color-02 tx-semibold mg-b-8">Solved tickets</h6>
+                    <div class="d-flex d-lg-block d-xl-flex align-items-end">
+                        <h3 class="tx-normal tx-rubik mg-b-0 mg-r-5 lh-1">
+                            {{admin_dashboard.tickets.budget_next_month|default:0}}</h3>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-6 col-lg-3">
+                <div class="card card-body">
+                    <h6 class="tx-uppercase tx-11 tx-spacing-1 tx-color-02 tx-semibold mg-b-8">Total Tickets Raised</h6>
+                    <div class="d-flex d-lg-block d-xl-flex align-items-end">
+                        <h3 class="tx-normal tx-rubik mg-b-0 mg-r-5 lh-1">
+                            {{admin_dashboard.tickets.budget_this_month|default:0}}</h3>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        <!--  Tickets Details End Here -->
+
+        <div class="row ">
+            <div class="col-12 col-lg-12 mg-b-30">
+                <div class="d-sm-flex align-items-center justify-content-between mg-b-10 mg-lg-b-15 mg-xl-b-20">
+                    <div>
+                        <h4 class="mg-b-0 tx-spacing--1">Top Performing Line Items</h4>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-striped table-bordered">
+                        <thead>
+                        <tr>
+                            <td>Sub-Campaign ID</td>
+                            <td>Sub-Campaign Name</td>
+                            <td>IO ID</td>
+                            <td>IO Name</td>
+                            <td>Line Item ID</td>
+                            <td>Line Ite Name</td>
+                            <td>Booked Volume</td>
+                            <td>Delivered Volume</td>
+                            <td>Clicks</td>
+                            <td>CTR %</td>
+                            <td>End Date</td>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for line_item in admin_dashboard.top_performing_campaign %}
+                        <tr>
+                            <td>
+                                <a class="text-underline"
+                                   href="/insertion_order/subcampaign/{{line_item.io.sub_campaign.id}}/view-report/">
+                                    <u>{{line_item.io.sub_campaign.booking_id}}</u>
+                                </a>
+                            </td>
+                            <td>
+                                <a href="/insertion_order/subcampaign/{{line_item.io.sub_campaign.id}}/view-report/">
+                                    <u>{{line_item.io.sub_campaign.name}}</u>
+                                </a>
+                            </td>
+                            <td>{{line_item.io.io_id}}</td>
+                            <td>{{line_item.io.name}}</td>
+                            <td>{{line_item.item_id}}</td>
+                            <td>{{line_item.description}}</td>
+                            <td class="text-right">{{line_item.volume|intcomma}}</td>
+                            <td class="text-right">{{line_item.total_impression|intcomma}}</td>
+                            <td class="text-right">{{line_item.total_clicks|intcomma}}</td>
+                            <td class="text-right">{{line_item.ctr|floatformat:"2"}}%</td>
+                            <td>{{line_item.end_date}}</td>
+                        </tr>
+                        {% endfor %}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+            </div>
+
+            <!--Campaigns Ending Soon Start -->
+            <div class="col-12 col-lg-12 mg-b-30">
+                <div class="d-sm-flex align-items-center justify-content-between mg-b-10 mg-lg-b-15 mg-xl-b-20">
+                    <div>
+                        <h4 class="mg-b-0 tx-spacing--1">Campaigns Ending Soon</h4>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-striped table-bordered">
+                        <thead>
+                        <tr>
+                            <td>Sub-Campaign ID</td>
+                            <td>Sub-Campaign Name</td>
+                            <td>IO ID</td>
+                            <td>IO Name</td>
+                            <td>Line Item ID</td>
+                            <td>Line Ite Name</td>
+                            <td>Booked Volume</td>
+                            <td>Delivered Volume</td>
+                            <td>Days Remaining</td>
+                            <td>End Date</td>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for line_item in admin_dashboard.closing_campaign %}
+                        <tr>
+                            <td>
+                                <a class="text-underline"
+                                   href="/insertion_order/subcampaign/{{line_item.io.sub_campaign.id}}/view-report/">
+                                    <u>{{line_item.io.sub_campaign.booking_id}}</u>
+                                </a>
+                            </td>
+                            <td>
+                                <a href="/insertion_order/subcampaign/{{line_item.io.sub_campaign.id}}/view-report/">
+                                    <u>{{line_item.io.sub_campaign.name}}</u>
+                                </a>
+                            </td>
+                            <td>{{line_item.io.io_id}}</td>
+                            <td>{{line_item.io.name}}</td>
+                            <td>{{line_item.item_id}}</td>
+                            <td>{{line_item.description}}</td>
+                            <td class="text-right">{{line_item.volume|intcomma}}</td>
+                            <td class="text-right">{{line_item.total_impression|intcomma}}</td>
+                            <td class="text-right">{{line_item.end_date|days_until}}</td>
+                            <td>{{line_item.end_date}}</td>
+                        </tr>
+                        {% endfor %}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+            </div>
+            <!--Campaigns Ending Soon End -->
+
+             <!--recently completed line item  Start -->
+            <div class="col-12 col-lg-12 mg-b-30">
+                <div class="d-sm-flex align-items-center justify-content-between mg-b-10 mg-lg-b-15 mg-xl-b-20">
+                    <div>
+                        <h4 class="mg-b-0 tx-spacing--1">Recently Completed Line Items</h4>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-striped table-bordered">
+                        <thead>
+                        <tr>
+                            <td>Sub-Campaign ID</td>
+                            <td>Sub-Campaign Name</td>
+                            <td>IO ID</td>
+                            <td>IO Name</td>
+                            <td>Line Item ID</td>
+                            <td>Line Ite Name</td>
+                            <td>Booked Volume</td>
+                            <td>Delivered Volume</td>
+                            <td>Clicks</td>
+                            <td>CTR %</td>
+                            <td>End Date</td>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for line_item in admin_dashboard.closed_campaign %}
+                        <tr>
+                            <td>
+                                <a class="text-underline"
+                                   href="/insertion_order/subcampaign/{{line_item.io.sub_campaign.id}}/view-report/">
+                                    <u>{{line_item.io.sub_campaign.booking_id}}</u>
+                                </a>
+                            </td>
+                            <td>
+                                <a href="/insertion_order/subcampaign/{{line_item.io.sub_campaign.id}}/view-report/">
+                                    <u>{{line_item.io.sub_campaign.name}}</u>
+                                </a>
+                            </td>
+                            <td>{{line_item.io.io_id}}</td>
+                            <td>{{line_item.io.name}}</td>
+                            <td>{{line_item.item_id}}</td>
+                            <td>{{line_item.description}}</td>
+                            <td class="text-right">{{line_item.volume|intcomma}}</td>
+                            <td class="text-right">{{line_item.total_impression|intcomma}}</td>
+                            <td class="text-right">{{line_item.total_clicks|intcomma}}</td>
+                            <td class="text-right">{{line_item.ctr|floatformat:"2"}}%</td>
+                            <td>{{line_item.end_date}}</td>
+                        </tr>
+                        {% endfor %}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+            </div>
+            <!--recently completed line item -->
+        </div>
+
+        <div class="row mg-b-30">
+
+            <div class="col-lg-12 col-xl-12 ">
+                <div class="d-sm-flex align-items-center justify-content-between mg-b-20 mg-lg-b-25 mg-xl-b-30">
+                    <div>
+                        <h4 class="mg-b-0 tx-spacing--1">Campaign Budget Spend(Last 30Days)</h4>
+                    </div>
+                </div>
+                <div class="card mg-b-10">
+                    <div>
+                        <canvas id="myChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    var order_count = [];
+
+    var labels = [];
+    {% for order in admin_dashboard.last_30_days %}
+        order_count.push({{order.budget |floatformat:"2" }})
+        labels.push("{{order.day | date:'d / M'}}")
+    {% endfor %}
+
+    console.log(order_count, labels)
+
+    var ctx = document.getElementById('myChart').getContext('2d');
+    var myChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: 'Budget {{admin_dashboard.currency_symbols}}',
+                    fill: false,
+                    data: order_count,
+                    borderColor: '#6a453b',
+                    backgroundColor: '#6a453b',
+                },
+            ]
+        },
+        options: {
+            responsive: true,
+            title:{
+            display:true,
+            text:"Campaign Budget Spend"
+            }
+        }
+    });
+
+    </script>
+</div>
+{% endblock %}
+
+{% block sidebar %}
+
+{% endblock %}

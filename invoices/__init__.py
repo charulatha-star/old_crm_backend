@@ -1,0 +1,1 @@
+list_display = ("lead_no", "booking_no", "primary_info", "project", "tower", "floor", "apartment")

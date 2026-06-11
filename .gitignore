@@ -1,0 +1,19 @@
+# Virtual Environment
+billiontags-crm-env/
+
+# Environment Variables
+.env
+
+# Python
+__pycache__/
+*.pyc
+
+# VS Code
+.vscode/
+
+# Logs
+*.log
+
+# Static
+staticfiles/
+media/ 

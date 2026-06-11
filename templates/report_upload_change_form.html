@@ -1,0 +1,44 @@
+{% extends 'admin/change_form.html' %}
+
+{% block submit_buttons_bottom %}
+{{ block.super }}
+<div class="submit-row">
+    <button type="button" data-toggle="modal" data-target="#myModal">Upload Report</button>
+</div>
+{% endblock %}
+
+{% block branding %}
+{{ block.super }}
+<div class="modal" id="myModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <!-- Modal Header -->
+            <div class="modal-header">
+                <h4 class="modal-title">Upload Report</h4>
+            </div>
+
+            <!-- Modal body -->
+            <div class="modal-body">
+                {{upload_url}}
+                <form class="form-row" action="{{upload_url}}" method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="col mb-3">
+                        <label for="id_csv_file">Select File:</label>
+                        <input class="form-control" type="file" accept=".csv" name="csv_file" id="id_csv_file" required>
+                    </div>
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-primary">Submit</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Modal footer -->
+            <div class="modal-footer">
+                <button type="button" class="btn" data-dismiss="modal">Close</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

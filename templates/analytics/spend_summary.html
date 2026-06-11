@@ -1,0 +1,112 @@
+{% extends "admin/base_site.html" %}
+{% load reports humanize %}
+
+{% block extrastyle %}{{ block.super }}
+<script src="https://cdn.jsdelivr.net/gh/linways/table-to-excel@v1.0.4/dist/tableToExcel.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="mb-3">
+    <form method="GET" id="filter">
+        <input type="hidden" name="start_date" id="start_date" value="{{request.GET.start_date}}">
+        <input type="hidden" name="end_date" id="end_date" value="{{request.GET.end_date}}">
+        <div class="form-row">
+            <div class="col-md-3">
+                <div class="form-group">
+                    <label for="company">Select Company</label>
+                    <select class="custom-select" id="company" name="company"
+                            onchange="this.form.submit()">
+                        <option value="">Choose..</option>
+                        {% for company in companies %}
+                        <option value="{{company.id}}"
+                                {% if company.id is request.GET.company|add:0 %} selected {% endif %}>{{company}}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="form-group">
+                    <label for="reportDate">Report On</label>
+                    <input type="text" id="reportDate" class="form-control"
+                           value="{{start_date|date:'Y-m-d' }} - {{end_date|date:'Y-m-d' }}"/>
+
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+<div class=" my-3">
+    <input
+            type="button"
+            class="btn btn-primary"
+            onclick="TableToExcel.convert(document.getElementById('myTable'), { name: 'Spend Summary - {{start_date|date:'Y-m-d'}} - {{end_date|date:'Y-m-d'}}.xlsx', sheet: { name: 'Summary' }})"
+            value="Dwonload Excel"
+    >
+</div>
+<div>
+    <table id="myTable" class="table table-bordered table-striped"   data-cols-width="5,40,25,25,25,25,25,25">
+        <thead>
+        <tr data-height="30">
+            <th data-a-wrap="true" data-a-v="middle" data-a-h="center" data-f-bold="true" scope="col" rowspan="2"
+                class="text-center">S.No
+            </th>
+            <th data-a-wrap="true" data-a-v="middle" data-a-h="center" data-f-bold="true" scope="col" rowspan="2"
+                class="text-center">Company Name
+            </th>
+            <th data-a-wrap="true" data-a-v="middle" data-a-h="center" data-f-bold="true" scope="col" colspan="2"
+                class="text-center">Delivered
+            </th>
+
+            <th data-a-wrap="true" data-a-v="middle" data-a-h="center" data-f-bold="true" scope="col" colspan="2"
+                class="text-center">Yet to be Delivered
+            </th>
+
+        </tr>
+        <tr data-height="30">
+            <th data-a-wrap="true" data-a-v="middle" data-a-h="center" data-f-bold="true" class="text-center">
+                Impressions
+            </th>
+            <th data-a-wrap="true" data-a-v="middle" data-a-h="center" data-f-bold="true" class="text-center">Budget
+            </th>
+            <th data-a-wrap="true" data-a-v="middle" data-a-h="center" data-f-bold="true" class="text-center">
+                Impressions
+            </th>
+            <th data-a-wrap="true" data-a-v="middle" data-a-h="center" data-f-bold="true" class="text-center">Budget
+            </th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for company in object_list %}
+        {% spend_summary_company request company as company_spend %}
+        <tr  data-height="30">
+            <th scope="row">{{forloop.counter}}</th>
+            <td>{{company}}</td>
+            <td>{{company_spend.total_delivered_impression|intcomma}}</td>
+            <td>{{company_spend.total_delivered_budget|intcomma}}</td>
+            <td>{{company_spend.yet_to_deliverable_impression|intcomma}}</td>
+            <td>{{company_spend.yet_to_deliverable_budget|intcomma}}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+<script>
+    $(document).ready(function() {
+        $('#reportDate').daterangepicker({
+            singleDatePicker: false,
+            showDropdowns: true,
+            maxDate: moment().subtract(1, "days"),
+            locale: {
+                format: 'YYYY-MM-DD'
+            }
+        }, function(start, end, label) {
+            $('#start_date').val(start.format('YYYY-MM-DD'))
+            $('#end_date').val(end.format('YYYY-MM-DD'))
+            $('#filter').submit()
+        });
+    });
+
+</script>
+{% endblock %}

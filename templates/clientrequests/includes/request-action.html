@@ -1,0 +1,35 @@
+<div>
+    {% if object.status == 'Paused' or object.status == 'Stopped' %}
+    <div class="custom-control custom-radio custom-control-inline">
+        <input type="radio" name="{{object.id}}" data-status="{{object.status}}"
+               class="custom-control-input {{class_name}}"
+               id="resumeCheck{{object.id}}" value="Resume" {% if onclick %} onclick="{{onclick}}" {% endif %}>
+        <label class="custom-control-label"
+               for="resumeCheck{{object.id}}">Resume</label>
+    </div>
+    {%else%}
+    <div class="custom-control custom-radio custom-control-inline">
+        <input type="radio" name="{{object.id}}" data-status="{{object.status}}"
+               class="custom-control-input {{class_name}}"
+               id="pauseCheck{{object.id}}" value="Pause" {% if onclick %} onclick="{{onclick}}" {% endif %}>
+        <label class="custom-control-label"
+               for="pauseCheck{{object.id}}">Pause</label>
+    </div>
+    {%endif%}
+    {% if object.status != 'Stopped' %}
+    <div class="custom-control custom-radio custom-control-inline">
+        <input type="radio" name="{{object.id}}" data-status="{{object.status}}"
+               class="custom-control-input {{class_name}}"
+               id="stopCheck{{object.id}}" value="Stop" {% if onclick %} onclick="{{onclick}}" {% endif %}>
+        <label class="custom-control-label"
+               for="stopCheck{{object.id}}">Stop</label>
+    </div>
+    {%endif%}
+    <div class="custom-control custom-radio custom-control-inline">
+        <input type="radio" name="{{object.id}}" data-status="{{object.status}}"
+               class="custom-control-input {{class_name}}"
+               id="{{object.status}}Check{{object.id}}"  value="{{object.status}}" checked {% if onclick %} onclick="{{onclick}}" {% endif %}>
+        <label class="custom-control-label"
+               for="{{object.status}}Check{{object.id}}">{{object.status}}</label>
+    </div>
+</div>

@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+{% load humanize %}
+<head>
+    <meta charset="UTF-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>{{order.order_id}}</title>
+    <style>
+        *,
+        ::after,
+        ::before {
+            box-sizing: border-box;
+        }
+        body {
+            background-color: #fff;
+            font-family: Arial, sans-serif;
+            font-style: normal;
+            font-size: 15px;
+            text-align: left;
+        }
+        .page {
+            background: white;
+            display: block;
+            margin: 0 auto;
+            margin-bottom: 0.5cm;
+        }
+        .a4 {
+        background-color: #fff;
+        }
+        @media print {
+            body,
+            .page {
+                margin: 20px;
+                box-shadow: 0;
+            }
+        }
+
+        .text-right {
+            text-align: right;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        table {
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            text-align: left;
+        }
+
+        .table {
+            width: 100%;
+            margin-bottom: 1rem;
+            background-color: transparent;
+        }
+
+        .table th,
+        .table td {
+            padding: 0.5rem;
+            vertical-align: top;
+            border-top: 1px solid #dee2e6;
+        }
+
+        .table thead th {
+            vertical-align: bottom;
+            border-bottom: 2px solid #dee2e6;
+        }
+
+        .table tbody + tbody {
+            border-top: 2px solid #dee2e6;
+        }
+
+        .table .table {
+            background-color: #fff;
+        }
+
+        .table-sm th,
+        .table-sm td {
+            padding: 0.3rem;
+        }
+
+        .table-bordered {
+            border: 1px solid #dee2e6;
+        }
+
+        .table-bordered th,
+        .table-bordered td {
+            border: 1px solid #dee2e6;
+        }
+
+        .table-bordered thead th,
+        .table-bordered thead td {
+            border-bottom-width: 2px;
+        }
+
+        .table-borderless th,
+        .table-borderless td,
+        .table-borderless thead th,
+        .table-borderless tbody + tbody {
+            border: 0;
+        }
+        .heading {
+            text-decoration: underline;
+            font-weight: bold;
+            margin-bottom: 12px;
+        }
+        .w-100 {
+            width: 100%;
+        }
+        .row {
+            width: 100%;
+        }
+        .half-col-1 {
+            width: 50%;
+            padding-right: 8px;
+            vertical-align: top;
+        }
+        .half-col-2 {
+            width: 50%;
+            padding-left: 8px;
+            vertical-align: top;
+        }
+        .table-heading {
+            background-color: #e7e7e7;
+        }
+        td.vertical-middle {
+            vertical-align: middle;
+        }
+
+    </style>
+</head>
+
+<body>
+<div class="page a4">
+    <table class="w-100" style="font-size: 18px; margin-bottom: 30px;">
+        <thead>
+        <tr>
+            <th>
+                <img src="http://crm.billiontags.com/static/custom_admin/img/logo.png"
+                     height="50"/>
+            </th>
+        </tr>
+        </thead>
+    </table>
+    <table class="w-100" style="font-size: 18px; margin-bottom: 10px;">
+        <thead>
+        <tr>
+            <th>Booking IO ID : {{order.booking_id}}</th>
+            <th class="text-right">Campaign ID : {{order.sub_campaign.campaign.campaign_id |default:'NA'}}</th>
+        </tr>
+        </thead>
+    </table>
+    <table class="table table-bordered">
+        <tbody>
+        <tr>
+            <th>Network/Publisher</th>
+            <td>Billiontags Creations Pvt. Ltd.</td>
+        </tr>
+        <tr>
+            <th>Date of IO</th>
+            <td>{{order.updated_on|date:"M d, Y"}}</td>
+        </tr>
+        <tr>
+            <th>Order taken by</th>
+            <td>{{order.order_taken_by.get_full_name}}</td>
+        </tr>
+        <tr>
+            <th>Email</th>
+            <td>{{order.order_taken_by.email}}</td>
+        </tr>
+        <tr>
+            <th>Address</th>
+            <td>
+                Sankaran Avenue, Shree Vatsa Towers, No:1/93,
+                Janakpuri 2nd Street, 2nd Floor, Above Cars 24
+                Velachery, Velachery, Chennai, Tamil Nadu 600042.
+            </td>
+        </tr>
+        </tbody>
+    </table>
+    <div class="heading">CUSTOMER DETAILS:</div>
+    <table class="w-100">
+        <tbody>
+        <tr class="row">
+            <td class="half-col-1">
+                <table class="table table-bordered">
+                    <thead>
+                    <tr>
+                        <th class="table-heading" colspan="2">
+                            Customer Contact Details
+                        </th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td>Agency/Advertiser</td>
+                        <td>{{order.contact_person.name}}</td>
+                    </tr>
+                    <tr>
+                        <td>Phone</td>
+                        {% if order.contact_person.phone_number %}
+                        <td>+{{order.contact_person.country.dail_code}} {{order.contact_person.phone_number}}</td>
+                        {%else%}
+                        <td>NA</td>
+                        {%endif %}
+                    </tr>
+                    <tr>
+                        <td>E-Mail</td>
+                        <td>{{order.contact_person.email}}</td>
+                    </tr>
+                    <tr>
+                        <td>Address Line – 1</td>
+                        <td>{{order.contact_person.address_line_1}}</td>
+                    </tr>
+                    <tr>
+                        <td>Address Line – 2</td>
+                        <td>{{order.contact_person.address_line_2|default:''}} {{order.contact_person.country}}</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </td>
+            <td class="half-col-2">
+                <table class="table table-bordered">
+                    <thead>
+                    <tr>
+                        <th class="table-heading" colspan="2">
+                            Customer Billing Details
+                        </th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td>Agency/Advertiser</td>
+                        <td>{{order.sub_campaign.campaign.company.name}}</td>
+                    </tr>
+                    <tr>
+                        <td>Phone</td>
+                        {% if order.sub_campaign.campaign.company.phone_number %}
+                        <td>+{{order.sub_campaign.campaign.company.country.dail_code}}
+                            {{order.sub_campaign.campaign.company.phone_number}}
+                        </td>
+                        {%else%}
+                        <td>NA</td>
+                        {%endif %}
+                    </tr>
+                    <tr>
+                        <td>E-Mail</td>
+                        <td>{{order.sub_campaign.campaign.company.email | default:"NA"}}</td>
+                    </tr>
+                    <tr>
+                        <td>Address Line – 1</td>
+                        <td>{{order.sub_campaign.campaign.company.address_line_1}}</td>
+                    </tr>
+                    <tr>
+                        <td>Address Line – 2</td>
+                        <td>{{order.sub_campaign.campaign.company.address_line_2|default:''}}
+                            {{order.sub_campaign.campaign.company.country}}
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+    <div class="heading">ORDER DETAILS:</div>
+    <table class="w-100">
+        <tbody>
+        <tr class="row">
+            <td class="half-col-1">
+                <table class="table table-bordered">
+                    <thead>
+                    <tr>
+                        <th class="table-heading" colspan="2">
+                            Booking Information
+                        </th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td>Advertising Client Name</td>
+                        <td>{{order.contact_person.name}}</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            Campaign Name (Complete in Full)
+                        </td>
+                        <td>
+                            {{order.name}}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            GEO
+                        </td>
+                        <td>
+                            {{order.geo | default:"NA"}}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            Client Campaign ID
+                        </td>
+                        <td>
+                            {{order.work_order_no | default:"NA"}}
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </td>
+            <td class="half-col-2">
+                <table class="table table-bordered">
+                    <thead>
+                    <tr>
+                        <th class="table-heading" colspan="2">
+                            Notes, additional info & special
+                            Instruction
+                        </th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td>Payment terms</td>
+                        <td>{{order.sub_campaign.campaign.company.payment_type}} –
+                            {{order.sub_campaign.campaign.company.payment_term}}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Out Clause</td>
+                        <td>48 Hours</td>
+                    </tr>
+                    <tr>
+                        <td>Billing On</td>
+                        <td>Billiontags Numbers</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+    <div class="heading">BOOKING DETAILS:</div>
+    <table class="table table-bordered">
+        <tbody>
+        <tr>
+            <th class="vertical-middle"><b>IO ID & Line Item ID</b></th>
+            <th style="width: 300px;" class="vertical-middle"><b>IO Name & Line Item Name</b></th>
+            <th style="width: 140px;" class="vertical-middle"><b>Ad Type</b></th>
+            <th class="vertical-middle"><b>Ethinicity</b></th>
+            <th style="width: 140px;" class="vertical-middle"><b>Start Date</b></th>
+            <th style="width: 140px;" class="vertical-middle"><b>End Date</b></th>
+            <th class="vertical-middle"><b>Volume</b></th>
+            <th class="vertical-middle"><b>Unit</b></th>
+            <th class="vertical-middle"><b>Unit Cost</b></th>
+            <th style="width: 140px;" class="vertical-middle"><b>Net Cost</b></th>
+        </tr>
+        {% for details in order.io_details.all %}
+        <tr>
+            <td class="vertical-middle">{{order.io_id}}/ {{details.item_id}}</td>
+            <td class="vertical-middle"> {{details.description}}</td>
+            <td class="vertical-middle">
+                {{details.ad_type}}
+            </td>
+            <td class="vertical-middle" style="text-align:center;">{{details.ethinicity}}</td>
+            <td class="vertical-middle" style="text-align:center;">
+                {{details.start_date|date:"d-m-Y"}}
+            </td>
+            <td class="vertical-middle" style="text-align:center;">
+                {{details.end_date|date:"d-m-Y"}}
+            </td>
+
+            <td class="vertical-middle">
+                {{details.volume |intcomma}}
+            </td>
+            <td class="vertical-middle">
+                {{details.ad_metrics}}
+            </td>
+            <td class="vertical-middle">
+                {{order.sub_campaign.campaign.company.billing_currency.currency_symbols}}{{details.unit_cost}}({{order.sub_campaign.campaign.company.billing_currency.iso_code_3}})
+            </td>
+
+            <td class="vertical-middle">
+                {{order.sub_campaign.campaign.company.billing_currency.currency_symbols}}{{details.net_cost}}({{order.sub_campaign.campaign.company.billing_currency.iso_code_3}})
+            </td>
+        </tr>
+        {% endfor %}
+        <tr>
+            <th class="text-center" colspan="5">Total</th>
+            <th></th>
+            <th>{{order.total_impressions |intcomma}}</th>
+            <th></th>
+            <th></th>
+            <th>{{order.total_cost}} {{order.sub_campaign.campaign.company.billing_currency.iso_code_3}}</th>
+        </tr>
+        </tbody>
+    </table>
+    <div style="page-break-inside: avoid;">
+        <table class="table table-bordered">
+
+
+            <tbody>
+            <tr>
+                <td class="table-heading" colspan="2"><b>Signature</b></td>
+            </tr>
+            <tr>
+                <td>
+                    <div style="margin-bottom: 8px">
+                        <b>Duly Authorized on behalf of the
+                            Billiontags by:</b>
+                    </div>
+                    <div style="margin-bottom: 8px">
+                        <span style="margin-right: 20px"><b>Name:</b> Praveen Kumar</span>
+                        <span><b>Date:</b> {{order.updated_on|date:"M d, Y"}}</span>
+                    </div>
+                    <div style="margin-bottom: 8px">
+                        <b>Signature</b>
+                    </div>
+                    <div style="
+                                    height: 90px;
+                                    border-bottom: 1px solid #000;
+                                ">
+                        <img src="http://crm.billiontags.com/static/custom_admin/img/sign.png" height="50"/>
+                    </div>
+                </td>
+                <td>
+                    <div style="margin-bottom: 8px">
+                        <b>Duly Authorized on behalf of the advertiser
+                            agency:</b>
+                    </div>
+                    <div style="margin-bottom: 8px">
+                        <span style="margin-right: 20px"><b>Name:</b> {{order.contact_person.name}}</span>
+                        <span><b>Date:</b> {{order.updated_on|date:"M d, Y"}}</span>
+                    </div>
+                    <div style="margin-bottom: 8px">
+                        <b>Signature</b>
+                    </div>
+                    <div style="
+                                    padding-top: 90px;
+                                    border-bottom: 1px solid #000;
+                                "></div>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+    <div style="page-break-inside: avoid;">
+        <div class="heading">
+            BILLIONTAGS Terms and Conditions for Internet Advertising:
+        </div>
+        <p>
+            These BILLIONTAGS, Inc. Terms and Conditions for Internet
+            Advertising (“Standard Terms”) are affiliating (“BILLIONTAGS”)
+            the Advertiser / Agency identified below (“Advertiser” or
+            “Agency”). The parties acknowledge and agree the Standard Terms
+            shall be effective as of the date set forth below, and shall
+            govern one or more separate insertion orders (each an “IO”)
+            executed by the parties.
+        </p>
+    </div>
+    <div class="heading">Cancellation and Termination:</div>
+    <ol class="calcellation-list">
+        <li>
+            At any time prior to the serving of the first impression of
+            the IO, Agency may cancel the IO with reports must be
+            updated / sent /given access on a daily basis. Cancellation
+            48Hours prior written notice, without penalty.
+        </li>
+        <li>
+            Upon the serving of the first impression of the IO, Agency
+            may cancel the IO for any reason, without penalty, by
+            providing BILLIONTAGS written notice of cancellation which
+            will be effective after the later of: (i) 30 days after
+            serving the first impression of the IO; or (ii) 14 days
+            after providing BILLIONTAGS with such written notice."
+        </li>
+        <li>
+            Either party may terminate an IO at any time if the other
+            party is in material breach of its obligations here it is
+            not cured within 10 days after written notice therefore from
+            the
+        </li>
+        <li>
+            Non-breaching party, except as otherwise stated in this
+            Agreement with regard to specific breaches. Additionally, if
+            Agency or Advertiser commit a violation of the same Policy
+            (as defined below), where such Policy had been provided by
+            BILLIONTAGS to Agency, on three separate occasions after
+            having received timely notice of each such breach, even if
+            such breach has been cured by Agency or Advertiser, then
+            BILLIONTAGS may terminate the IO associated with such breach
+            upon written notice. If Agency or Advertiser do not cure a
+            violation of a Policy within the applicable ten-day cure
+            period after written notice, where such Policy had been
+            provided by BILLIONTAGS to Agency, then BILLIONTAGS may
+            terminate the IO associated with such breach upon written
+            notice."
+        </li>
+        <li>
+            Short rates will apply to cancel buys to the degree stated
+            on the IO.
+        </li>
+        <li>
+            For Any Creative or tags that is not in accordance with IAB
+            Standard or a non performing creative or tags were given to
+            BILLIONTAGS then BILLIONTAGS cannot be accounted for
+            non-performance however BILLIONTAGS can be given another
+            creative tags as an alternative. There will be a minimum
+            deployment charge for all campaigns irrespective of the
+            completion or not and that will not be borne by BILLIONTAGS
+            for any failure from the Advertiser side. Deployment cost
+            will be prorated according to the delivery report and is a
+            sole discretion of BILLIONTAGS However we will ensure that
+            the campaigns is delivered in accordance to the IO.
+        </li>
+    </ol>
+    <div style="page-break-inside: avoid;">
+        <div class="heading">Refund Policy :</div>
+        <p>
+            BILLIONTAGS do not allow Redirects, Malware, Adult Ads and Pop
+            ups. An Advertiser can only have one offer per campaign. If an
+            Advertiser wish to display two different Landing Pages for the
+            same offer, then Billiontags requires two tracking URL within
+            the same campaign.<br> "You are entitled to request for a refund in
+            the following cases:<br> First, if there has been an incorrect
+            payment transaction. Second, if you have made a prepayment and
+            you prove that the actions forming the basis of the pricing
+            model of your Campaign are based on a Publisher’s fraudulent
+            activities (i.e. the artificial increase of actions). In order
+            to detect and prove Publishers’ fraudulent activities you
+            undertake to send to Billiontags a weekly detailed report of
+            sources/websites you consider to be fraudulent. In case the
+            Publisher’s fraudulent activities cannot be clearly identified
+            based on your report, Billiontags is entitled to request
+            additional proof from you. If you fail to submit a weekly report
+            or additional proof regarding the Publishers’ fraudulent
+            activities, Billiontags may refuse to give a refund and adjust
+            your balance accordingly. In case you are using post-payment
+            method and you are able to prove Publishers’ fraudulent
+            activities pursuant to this clause, Billiontags will not invoice
+            you for the agreed actions based on Publisher’s fraudulent
+            activities. Third, if at the end of the validity of the Contract
+            it appears that you have spent for Billiontags services less
+            than you have prepaid. In such a case you are entitled to ask
+            for a refund within 30 days after the termination of the
+            Contract, provided that the amount of your unused balance is at
+            least 50 EUR. Before refunding, Billiontags will have to
+            finalize all not invoiced spending and make necessary
+            adjustments where needed. After finalizing all current
+            statistics, your unused balance will be refunded to you at your
+            request, minus an administrative fee of 25% to cover Billiontags
+            costs and fees related with the management of giving a refund,
+            within 30 working days. YOUR REFUND WILL BE CREDITED BACK TO THE
+            SAME PAYMENT METHOD AND SAME PAYMENT ACCOUNT THAT YOU USED TO
+            MAKE YOUR LAST PAYMENT. You may be required to provide
+            additional information or documentation in order for Billiontags
+            to confirm your identity, before any refund request is
+            processed. PLEASE BE AWARE THAT IF YOUR CONTRACT WITH
+            Billiontags IS TERMINATED DUE TO THE VIOLATION OF CONTRACT BY
+            YOU (E.G. DUE TO YOUR FRAUDULENT ACTIVITY), Billiontags IS
+            ENTITLED TO A CONTRACTUAL PENALTY IN THE AMOUNT OF YOUR UNUSED
+            BALANCE AND THEREFORE, Billiontags MAY REFUSE TO GIVE YOU A
+            REFUND BY WAY OF SET-OFF OF THE CLAIMS.”
+        </p>
+    </div>
+</div>
+</body>
+
+</html>
