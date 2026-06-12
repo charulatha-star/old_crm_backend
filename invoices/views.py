@@ -56,7 +56,7 @@ class GenerateInvoiceView(PDFTemplateView, ):
             **kwargs)
 
 
-# Version 3 — PDF download (alternate template)
+# Version 3 — PDF download (alternate template) 
 class GenerateInvoice2View(PDFTemplateView):
     template_name = "invoice_template2.html"
 

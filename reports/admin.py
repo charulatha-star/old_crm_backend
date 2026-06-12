@@ -7,7 +7,7 @@ from django.utils.safestring import mark_safe
 from categories.admin import admin_site
 from insertion_order.models import IODetails
 
-
+# Under Pacing Admin Panel View
 class LineItemUnderPacing(IODetails):
     class Meta:
         proxy = True

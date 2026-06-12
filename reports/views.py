@@ -12,7 +12,8 @@ from insertion_order.models import IODetails, Campaigns, SubCampaign, InsertionO
 from insertion_order.templatetags.reports import month_year_iter
 
 
-class UnderPacingLineItem(LoginRequiredMixin, generic.TemplateView): # The line items which are under pacing by more than 10% compared to their daily target (calculated based on remaining volume and remaining days in the campaign). This is calculated based on the previous day's report data. This view is accessible to both managers and clients, but clients can only see line items for their own campaigns.
+class UnderPacingLineItem(LoginRequiredMixin, generic.TemplateView):
+     # The line items which are under pacing by more than 10% compared to their daily target (calculated based on remaining volume and remaining days in the campaign). This is calculated based on the previous day's report data. This view is accessible to both managers and clients, but clients can only see line items for their own campaigns.
     """
     use this template render the Under pacing Line Items
     """
@@ -25,7 +26,11 @@ class UnderPacingLineItem(LoginRequiredMixin, generic.TemplateView): # The line 
 
     def get_context_data(self, **kwargs):
         context = super(UnderPacingLineItem, self).get_context_data(**kwargs)
+        #context = super().get_context_data(**kwargs)
+        #my_list = [] 
+
         context['title'] = 'Bulk Report Upload'
+        #context['title'] = 'Under Pacing Report'
         self.request.current_app = 'Publisher_admin'
         context = admin_site.each_context(self.request)
         filter_dict = {}
@@ -36,10 +41,9 @@ class UnderPacingLineItem(LoginRequiredMixin, generic.TemplateView): # The line 
 
         if self.request.GET.get('company_name'):
             context['selected_company'] = int(self.request.GET.get('company_name'))
-
             context['campaigns'] = Campaigns.objects.filter(company=context['selected_company'], is_active=True)
-
             filter_dict['io__sub_campaign__campaign__company'] = context['selected_company']
+
 
         if self.request.GET.get('campaign'):
             context['selected_campaign'] = int(self.request.GET.get('campaign'))
@@ -52,7 +56,8 @@ class UnderPacingLineItem(LoginRequiredMixin, generic.TemplateView): # The line 
             filter_dict['io__sub_campaign'] = context['selected_sub_campaign']
 
         for line_item in IODetails.objects.filter(end_date__gte=datetime.today().date(), **filter_dict).order_by(
-                "end_date"):
+                "end_date"):  # still running 
+            
             remaining_days = (line_item.end_date - datetime.today().date()).days
             remaining_days = remaining_days if remaining_days > 0 else 0
             remaining_impressions = line_item.volume - line_item.total_impression()
@@ -62,39 +67,62 @@ class UnderPacingLineItem(LoginRequiredMixin, generic.TemplateView): # The line 
                 daily_target = round(remaining_impressions / remaining_days)
             except ZeroDivisionError:
                 daily_target = 0
+            # try:
+
+            #     # Yesterday's actual delivery
+            #     report = line_item.reports.get(report_on=datetime.today() - timedelta(days=1))
+
+            #     # % difference from target
+            #     pct = round((daily_target - report.impression) * 100 / report.impression)
+
+            #     # Only show if under-pacing by more than 10%
+            #     if pct > 0 and pct > 10:
+            #         self.my_list.append({"object": line_item, "value": pct, "daily_target": daily_target,
+            #                              "last_date": report.impression,
+            #                              "differance": daily_target - report.impression})
+            # except:
+            #     pass
+
+
             try:
-
-                # Yesterday's actual delivery
-                report = line_item.reports.get(report_on=datetime.today() - timedelta(days=1))
-
-                # % difference from target
-                pct = round((daily_target - report.impression) * 100 / report.impression)
-
-                # Only show if under-pacing by more than 10%
-                if pct > 0 and pct > 10:
-                    self.my_list.append({"object": line_item, "value": pct, "daily_target": daily_target,
-                                         "last_date": report.impression,
-                                         "differance": daily_target - report.impression})
+                report = line_item.reports.latest("report_on")
+                if report.impression > 0:
+                    pct = round((daily_target - report.impression) * 100 / report.impression)
+                    if pct > 0 and pct > 10:
+                        self.my_list.append({
+                        #my_list.append({
+                            "object": line_item,
+                            "value": pct,
+                            "daily_target": daily_target,
+                            "last_date": report.impression,
+                            "differance": daily_target - report.impression,
+                            "report_date": report.report_on})
             except:
                 pass
         context['my_list'] = self.my_list
-
+        #context['my_list'] = my_list   # ← use local variable
         return context
+
+       
 
 
 class OverPacingLineItem(LoginRequiredMixin, generic.TemplateView):
+    # The line items are overpacing too fast 
     """
     use this template render the Under pacing Line Items
     """
     login_url = '/'
     template_name = "reports/under_pacing_report.html"
-
+    
+    # command this line 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.my_list = []
 
     def get_context_data(self, **kwargs):
         context = super(OverPacingLineItem, self).get_context_data(**kwargs)
+        #context = super().get_context_data(**kwargs)
+        #my_list = []   # ← fresh list every request 
         context['title'] = 'Line Item Performance'
         self.request.current_app = 'Publisher_admin'
         context = admin_site.each_context(self.request)
@@ -109,11 +137,12 @@ class OverPacingLineItem(LoginRequiredMixin, generic.TemplateView):
             context['sub_campaigns'] = SubCampaign.objects.filter(campaign=int(self.request.GET.get('campaign')),
                                                                   is_active=True)
             filter_dict['io__sub_campaign__campaign'] = context['selected_campaign']
-        if self.request.GET.get('campaign'):
-            context['selected_campaign'] = int(self.request.GET.get('campaign'))
-            context['sub_campaigns'] = SubCampaign.objects.filter(campaign=int(self.request.GET.get('campaign')),
-                                                                  is_active=True)
-            filter_dict['io__sub_campaign__campaign'] = context['selected_campaign']
+
+        # if self.request.GET.get('campaign'):
+        #     context['selected_campaign'] = int(self.request.GET.get('campaign'))
+        #     context['sub_campaigns'] = SubCampaign.objects.filter(campaign=int(self.request.GET.get('campaign')),
+        #                                                           is_active=True)
+        #     filter_dict['io__sub_campaign__campaign'] = context['selected_campaign']
 
         if self.request.GET.get('sub_campaign'):
             context['selected_sub_campaign'] = int(self.request.GET.get('sub_campaign'))
@@ -128,30 +157,49 @@ class OverPacingLineItem(LoginRequiredMixin, generic.TemplateView):
                 daily_target = round(remaining_impressions / remaining_days)
             except ZeroDivisionError:
                 daily_target = 0
+            # try:
+            #     report = line_item.reports.get(report_on=datetime.today() - timedelta(days=1))
+            #     pct = round((daily_target - report.impression) * 100 / report.impression)
+            #     if pct < 0 and pct < -10:
+            #         self.my_list.append({"object": line_item, "value": pct, "daily_target": daily_target,
+            #                              "last_date": report.impression,
+            #                              "differance": daily_target - report.impression})
+            # except Exception as e:
+            #     pass
             try:
-                report = line_item.reports.get(report_on=datetime.today() - timedelta(days=1))
-                pct = round((daily_target - report.impression) * 100 / report.impression)
-                if pct < 0 and pct < -10:
-                    self.my_list.append({"object": line_item, "value": pct, "daily_target": daily_target,
-                                         "last_date": report.impression,
-                                         "differance": daily_target - report.impression})
-            except Exception as e:
+                report = line_item.reports.latest("report_on")
+                if report.impression > 0:
+                    pct = round((daily_target - report.impression) * 100 / report.impression)
+                    if pct < 0 and pct < -10:
+                        self.my_list.append({
+                        #my_list.append({
+                            "object": line_item,
+                            "value": pct,
+                            "daily_target": daily_target,
+                            "last_date": report.impression,
+                            "differance": daily_target - report.impression,
+                            "report_date": report.report_on})
+            except:
                 pass
+
         context['my_list'] = self.my_list
+        #context['my_list'] = my_list
         return context
 
 
 class ReportNotLineItem(LoginRequiredMixin, generic.ListView):
+
+
     """
     use this template render the Under pacing Line Items
     """
     login_url = '/'
     template_name = "reports/report_not_available.html"
-    paginate_by = 20
+    paginate_by = 20 # show 20 per page 
 
     def get_queryset(self):
-        return IODetails.objects.filter(end_date__gte=datetime.today().date()).exclude(
-            reports__report_on=datetime.today() - timedelta(days=1)).order_by("-end_date")
+        return IODetails.objects.filter(end_date__gte=datetime.today().date()).exclude(     # still running 
+            reports__report_on=datetime.today() - timedelta(days=1)).order_by("-end_date")   # exclude those that HAVE yesterday's report
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -169,17 +217,20 @@ class InvoiceSummaryReportView(LoginRequiredMixin, generic.ListView):
     """
     use this template render the Under pacing Line Items
     """
+    # Use this 
     login_url = '/'
     template_name = "reports/invoice_summary.html"
 
     def get_queryset(self):
         today = datetime.today()
-
+          
+            # If company and date selected:
         if self.request.GET.get('company') and self.request.GET.get('date'):
             today = datetime.strptime(self.request.GET.get('date'), '%Y-%m-%d')
             self.company = CompanyDetails.objects.get(name=self.request.GET.get('company'))
         else:
             self.company = None
+              # Get IOs running in the selected month
         month_start = today.replace(day=1)
         month_end = today.replace(day=calendar.monthrange(today.year, today.month)[1])
         qs = InsertionOrders.objects.filter(start_date__lte=month_end, end_date__gte=month_start).order_by("-created_on")
@@ -215,6 +266,8 @@ class InvoiceSummaryReportView(LoginRequiredMixin, generic.ListView):
 
 
 class SpendSummaryView(LoginRequiredMixin, generic.ListView):
+
+    # Shows total spend summary by company — analytics dashboard.
     """
     use this endpoint render the spend summary result
     """
@@ -224,9 +277,9 @@ class SpendSummaryView(LoginRequiredMixin, generic.ListView):
     def get_queryset(self):
         if self.request.GET.get('company'):
             return CompanyDetails.objects.filter(is_active=True, id=self.request.GET.get('company'))
-        return CompanyDetails.objects.filter(is_active=True).order_by("-created_on").annotate(
+        return CompanyDetails.objects.filter(is_active=True).order_by("-created_on").annotate(       # Total impressions across all campaigns
             impression=Sum('campaigns__sub_campaign__insertion_order__io_details__reports__impression')).order_by(
-            "-impression")
+            "-impression")  # highest spenders first
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -246,6 +299,8 @@ class SpendSummaryView(LoginRequiredMixin, generic.ListView):
 
 
 class CompanyForecastingSummaryView(LoginRequiredMixin, generic.ListView):
+
+    # Shows future projected spend month by month. 
     """
     use this endpoint render the spend summary result
     """
@@ -304,6 +359,7 @@ class CampaignForecastingSummaryView(LoginRequiredMixin, generic.ListView):
 
 
 class InvoiceYetNotGeneratedView(LoginRequiredMixin, generic.ListView):
+    #  Shows campaigns that have ended but no invoice created yet — billing follow-up.
     login_url = '/'
     template_name = "reports/invoice_not_yet_generated.html"
 
@@ -371,6 +427,7 @@ class InvoiceUnderDeliveredView(LoginRequiredMixin, generic.ListView):
 
 
 class InvoiceOverDeliveredView(LoginRequiredMixin, generic.ListView):
+    # Shows line items where delivered > booked — over-delivery for discount calculation.
     login_url = '/'
     template_name = "reports/invoice-over-delivered.html"
 
@@ -380,10 +437,10 @@ class InvoiceOverDeliveredView(LoginRequiredMixin, generic.ListView):
         self.my_list = []
 
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.company = None
-        self.my_list = []
+    # def __init__(self, **kwargs):
+    #     super().__init__(**kwargs)
+    #     self.company = None
+    #     self.my_list = []
 
     def get_queryset(self):
         today = datetime.today().date()
