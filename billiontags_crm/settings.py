@@ -40,6 +40,7 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 DEBUG = os.getenv("DEBUG") == "True"
 
 ALLOWED_HOSTS = ['*']
+#ALLOWED_HOSTS = ['*', 'crmtest.billiontags.com', 'www.crmtest.billiontags.com', '13.207.237.7']
 
 # Application definition
 
@@ -158,6 +159,7 @@ USE_TZ = False
 STATIC_URL = '/static/'
 
 # STATIC_ROOT = os.path.join(PROJECT_ROOT, 'static')
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 STATICFILES_DIRS = (os.path.join(PROJECT_ROOT, 'static/'),)
 
@@ -176,6 +178,6 @@ FILE_UPLOAD_MAX_MEMORY_SIZE = 20242880     # ~20MB
 
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 30000      # huge number!
 
-
+# WKHTMLTOPDF_CMD = '/usr/bin/wkhtmltopdf' (linux)
 # Activate 
 # .\billiontags-crm-env\bin\activate.ps1 

@@ -16,6 +16,9 @@ import pdfkit
 
 WKHTMLTOPDF_PATH = r"C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe"
 
+# import os
+# WKHTMLTOPDF_PATH = '/usr/bin/wkhtmltopdf' if os.name != 'nt' else r"C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe"
+
 
 def render_to_pdf(request, order):
     domain = "http://" + get_current_site(request).name
