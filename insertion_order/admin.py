@@ -324,7 +324,21 @@ class LineItemForm(forms.ModelForm):
         return instance
 
 
+# New Class
+# class LineItemPauseHistoryInline(admin.StackedInline):
+#     model = models.LineItemPauseHistory
+#     fields = (("paused_from", "paused_to", "reason"),)
+#     extra = 0
+#     verbose_name = "Pause Period"
+#     verbose_name_plural = "Pause Periods"
+
+#     def has_delete_permission(self, request, obj=None):
+#         return True
+
+
+# @admin.register(models.IODetails, site=admin_site)
 class IODetailsAdminInline(admin.StackedInline):
+    # inlines = [LineItemsReportsAdminInline, LineItemPauseHistoryInline]  # New field
     model = models.IODetails
     fields = (("item_id", "reports"), "category", "description", "ethinicity", ("start_date", "end_date"),
               "ad_type", "ad_metrics", "unit_cost", "volume", "avg_ctr", "status",
@@ -345,6 +359,7 @@ class IODetailsAdminInline(admin.StackedInline):
 
     def has_delete_permission(self, request, obj=None):
         return False
+
 
 
 class EmailCCContentAdminInline(admin.StackedInline):
@@ -415,8 +430,15 @@ class InsertionOrdersAdmin(admin.ModelAdmin):
         my_urls = [
             path('generate-io/<int:pk>/', self.render_io_template, name='admin_generate_io'),
             path('import-line_item/<int:pk>/', self.upload_line_items),
+            #path('preview-io/<int:pk>/', self.preview_io, name='admin_preview_io'),  # ADDED
         ]
         return my_urls + urls
+    
+
+    # def preview_io(self, request, pk):
+    #     order = utils.int_to_io(pk)
+    #     return render(request, "io_preview.html", {"order": order})
+
 
     def save_model(self, request, obj, form, change):
         if not change:
@@ -471,6 +493,9 @@ class InsertionOrdersAdmin(admin.ModelAdmin):
         return mark_safe(
             "<center><a href='generate-io/{id}/' class='btn btn-outline-secondary btn-sm'>Generate IO</a>"
             "</center>".format(id=obj.id))
+
+
+
 
     def sent_email(self, obj):
         return mark_safe("<a class='btn btn-outline-secondary btn-sm'>Send Email</a>")
@@ -1290,79 +1315,358 @@ class CampaignsAdmin(admin.ModelAdmin):
         return render(request, "csv_form.html", payload)
 
 
-    #Campaign-level and subcampaign download (download_excel):
+    # #Campaign-level and subcampaign download (download_excel):
+    # def download_excel(self, request, pk):
+    #     campaign = utils.int_to_campaigns(pk)
+    #     output = io.BytesIO()
+
+    #     workbook = xlsxwriter.Workbook(output, {'in_memory': True})
+
+    #     normal_format = workbook.add_format(
+    #         {'border': 2, 'align': 'center', 'valign': 'vcenter', "font_size": 10, "bold": True,
+    #          "border_color": "#CCCCCC"})
+    #     data_format = workbook.add_format(
+    #         {'border': 2, 'align': 'center', 'valign': 'vcenter', "font_size": 10, "border_color": "#CCCCCC"})
+    #     today = datetime.now()
+
+    #     for line_item in models.IODetails.objects.filter(io__sub_campaign__campaign=campaign):
+    #         insertion_order_worksheet = workbook.add_worksheet(str(line_item.item_id))
+
+    #         insertion_order_worksheet.write(2, 0, "Date of ID Setup", normal_format)
+    #         insertion_order_worksheet.write(3, 0, "Advertiser ID", normal_format)
+    #         insertion_order_worksheet.write(4, 0, "Campaign ID", normal_format)
+    #         insertion_order_worksheet.write(5, 0, "IO ID", normal_format)
+    #         insertion_order_worksheet.write(6, 0, "IO Name", normal_format)
+    #         insertion_order_worksheet.write(7, 0, "Impressions Booked", normal_format)
+    #         insertion_order_worksheet.write(8, 0, "Start Date", normal_format)
+    #         insertion_order_worksheet.write(9, 0, "End Date", normal_format)
+    #         insertion_order_worksheet.write(10, 0, "Target CPM", normal_format)
+    #         insertion_order_worksheet.write(11, 0, "Target CTR", normal_format)
+    #         insertion_order_worksheet.write(12, 0, "Line Item ID", normal_format)
+    #         insertion_order_worksheet.write(13, 0, "Line Item Name", normal_format)
+    #         insertion_order_worksheet.write(14, 0, "Ethnicity", normal_format)
+    #         insertion_order_worksheet.write(15, 0, "Ad Format", normal_format)
+    #         insertion_order_worksheet.write(16, 0, "Geography", normal_format)
+    #         insertion_order_worksheet.write(17, 0, "Market", normal_format)
+    #         insertion_order_worksheet.write(18, 0, "Viewability", normal_format)
+    #         insertion_order_worksheet.write(19, 0, "Creative", normal_format)
+    #         insertion_order_worksheet.write(20, 0, "VCR", normal_format)
+    #         insertion_order_worksheet.write(21, 0, "KPI", normal_format)
+    #         insertion_order_worksheet.write(22, 0, "Sitelist", normal_format)
+
+    #         insertion_order_worksheet.write(10, 1, "", data_format)
+    #         insertion_order_worksheet.write(11, 1, "", data_format)
+    #         insertion_order_worksheet.write(17, 1, "", data_format)
+    #         insertion_order_worksheet.write(18, 1, "", data_format)
+    #         insertion_order_worksheet.write(19, 1, "", data_format)
+    #         insertion_order_worksheet.write(20, 1, "", data_format)
+    #         insertion_order_worksheet.write(21, 1, "", data_format)
+    #         insertion_order_worksheet.write(22, 1, "", data_format)
+
+    #         insertion_order_worksheet.write(2, 1, today.strftime("%d-%B-%Y"), data_format)
+    #         insertion_order_worksheet.write(3, 1, campaign.company.client_id, data_format)
+    #         insertion_order_worksheet.write(4, 1, campaign.campaign_id, data_format)
+    #         insertion_order_worksheet.write(5, 1, line_item.io.io_id(), data_format)
+    #         insertion_order_worksheet.write(6, 1, line_item.io.name, data_format)
+    #         insertion_order_worksheet.write(7, 1, line_item.volume, data_format)
+    #         insertion_order_worksheet.write(8, 1, line_item.start_date.strftime("%d-%B-%Y"), data_format)
+    #         insertion_order_worksheet.write(9, 1, line_item.end_date.strftime("%d-%B-%Y"), data_format)
+    #         insertion_order_worksheet.write(12, 1, line_item.item_id, data_format)
+    #         insertion_order_worksheet.write(13, 1, line_item.description, data_format)
+    #         insertion_order_worksheet.write(14, 1, line_item.ethinicity.title, data_format)
+    #         if line_item.ad_type:
+    #             insertion_order_worksheet.write(15, 1, line_item.ad_type.title, data_format)
+    #         insertion_order_worksheet.write(16, 1, line_item.io.geo, data_format)
+    #         insertion_order_worksheet.set_column(0, 0, 16)
+    #         insertion_order_worksheet.set_column(1, 1, 50)
+    #     workbook.close()
+    #     output.seek(0)
+
+    #     response = HttpResponse(output.read(),
+    #                             content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+    #     response['Content-Disposition'] = "attachment; filename={}.xlsx".format(slugify(campaign.name[:30]))
+
+    #     output.close()
+    #     return response
+    
+
     def download_excel(self, request, pk):
+        from calendar import monthrange
         campaign = utils.int_to_campaigns(pk)
         output = io.BytesIO()
-
         workbook = xlsxwriter.Workbook(output, {'in_memory': True})
 
-        normal_format = workbook.add_format(
-            {'border': 2, 'align': 'center', 'valign': 'vcenter', "font_size": 10, "bold": True,
-             "border_color": "#CCCCCC"})
-        data_format = workbook.add_format(
-            {'border': 2, 'align': 'center', 'valign': 'vcenter', "font_size": 10, "border_color": "#CCCCCC"})
+        normal_format = workbook.add_format({
+            'border': 2, 'align': 'center', 'valign': 'vcenter',
+            "font_size": 10, "bold": True, "border_color": "#CCCCCC"
+        })
+        data_format = workbook.add_format({
+            'border': 2, 'align': 'center', 'valign': 'vcenter',
+            "font_size": 10, "border_color": "#CCCCCC"
+        })
+
         today = datetime.now()
 
-        for line_item in models.IODetails.objects.filter(io__sub_campaign__campaign=campaign):
-            insertion_order_worksheet = workbook.add_worksheet(str(line_item.item_id))
+        # ── Helper 1: Month-wise split ──────────────────────────────────────────
+        def get_monthly_splits(start_date, end_date):
+            """
+            Example:
+            start=12-May-2026, end=25-Jun-2026
+            → [(12-May, 31-May), (01-Jun, 25-Jun)]
 
-            insertion_order_worksheet.write(2, 0, "Date of ID Setup", normal_format)
-            insertion_order_worksheet.write(3, 0, "Advertiser ID", normal_format)
-            insertion_order_worksheet.write(4, 0, "Campaign ID", normal_format)
-            insertion_order_worksheet.write(5, 0, "IO ID", normal_format)
-            insertion_order_worksheet.write(6, 0, "IO Name", normal_format)
-            insertion_order_worksheet.write(7, 0, "Impressions Booked", normal_format)
-            insertion_order_worksheet.write(8, 0, "Start Date", normal_format)
-            insertion_order_worksheet.write(9, 0, "End Date", normal_format)
-            insertion_order_worksheet.write(10, 0, "Target CPM", normal_format)
-            insertion_order_worksheet.write(11, 0, "Target CTR", normal_format)
-            insertion_order_worksheet.write(12, 0, "Line Item ID", normal_format)
-            insertion_order_worksheet.write(13, 0, "Line Item Name", normal_format)
-            insertion_order_worksheet.write(14, 0, "Ethnicity", normal_format)
-            insertion_order_worksheet.write(15, 0, "Ad Format", normal_format)
-            insertion_order_worksheet.write(16, 0, "Geography", normal_format)
-            insertion_order_worksheet.write(17, 0, "Market", normal_format)
-            insertion_order_worksheet.write(18, 0, "Viewability", normal_format)
-            insertion_order_worksheet.write(19, 0, "Creative", normal_format)
-            insertion_order_worksheet.write(20, 0, "VCR", normal_format)
-            insertion_order_worksheet.write(21, 0, "KPI", normal_format)
-            insertion_order_worksheet.write(22, 0, "Sitelist", normal_format)
+            start=22-Jun-2026, end=23-Jul-2026
+            → [(22-Jun, 30-Jun), (01-Jul, 23-Jul)]
+            """
+            splits = []
+            current = start_date
 
-            insertion_order_worksheet.write(10, 1, "", data_format)
-            insertion_order_worksheet.write(11, 1, "", data_format)
-            insertion_order_worksheet.write(17, 1, "", data_format)
-            insertion_order_worksheet.write(18, 1, "", data_format)
-            insertion_order_worksheet.write(19, 1, "", data_format)
-            insertion_order_worksheet.write(20, 1, "", data_format)
-            insertion_order_worksheet.write(21, 1, "", data_format)
-            insertion_order_worksheet.write(22, 1, "", data_format)
+            while current <= end_date:
+                last_day = monthrange(current.year, current.month)[1]
+                month_end = current.replace(day=last_day)
+                actual_end = min(month_end, end_date)
+                splits.append((current, actual_end))
 
-            insertion_order_worksheet.write(2, 1, today.strftime("%d-%B-%Y"), data_format)
-            insertion_order_worksheet.write(3, 1, campaign.company.client_id, data_format)
-            insertion_order_worksheet.write(4, 1, campaign.campaign_id, data_format)
-            insertion_order_worksheet.write(5, 1, line_item.io.io_id(), data_format)
-            insertion_order_worksheet.write(6, 1, line_item.io.name, data_format)
-            insertion_order_worksheet.write(7, 1, line_item.volume, data_format)
-            insertion_order_worksheet.write(8, 1, line_item.start_date.strftime("%d-%B-%Y"), data_format)
-            insertion_order_worksheet.write(9, 1, line_item.end_date.strftime("%d-%B-%Y"), data_format)
-            insertion_order_worksheet.write(12, 1, line_item.item_id, data_format)
-            insertion_order_worksheet.write(13, 1, line_item.description, data_format)
-            insertion_order_worksheet.write(14, 1, line_item.ethinicity.title, data_format)
-            if line_item.ad_type:
-                insertion_order_worksheet.write(15, 1, line_item.ad_type.title, data_format)
-            insertion_order_worksheet.write(16, 1, line_item.io.geo, data_format)
-            insertion_order_worksheet.set_column(0, 0, 16)
-            insertion_order_worksheet.set_column(1, 1, 50)
+                if month_end >= end_date:
+                    break
+
+                # Move to 1st of next month
+                if current.month == 12:
+                    current = current.replace(year=current.year + 1, month=1, day=1)
+                else:
+                    current = current.replace(month=current.month + 1, day=1)
+
+            return splits
+
+        # ── Helper 2: Write one IO Setup table block ────────────────────────────
+        def write_io_setup_table(worksheet, col, line_item, period_start, period_end):
+            """
+            
+
+            Impressions Booked = always TOTAL (not split)
+            Start Date / End Date = this month's portion only
+            Monthly Target = proportional target for this period
+            """
+
+            # Monthly target calculation
+            total_days = (line_item.end_date - line_item.start_date).days + 1
+            days_in_period = (period_end - period_start).days + 1
+            try:
+                period_target = round((line_item.volume / total_days) * days_in_period)
+            except ZeroDivisionError:
+                period_target = 0
+
+            row = 2
+
+            # Row 3: Date of ID Setup
+            worksheet.write(row, col, "Date of ID Setup", normal_format)
+            worksheet.write(row, col + 1, today.strftime("%d-%B-%Y"), data_format)
+
+            # Row 4: Advertiser ID
+            row += 1
+            worksheet.write(row, col, "Advertiser ID", normal_format)
+            worksheet.write(
+                row, col + 1,
+                line_item.io.sub_campaign.campaign.company.client_id,
+                data_format
+            )
+
+            # Row 5: Campaign ID
+            row += 1
+            worksheet.write(row, col, "Campaign ID", normal_format)
+            worksheet.write(
+                row, col + 1,
+                line_item.io.sub_campaign.campaign.campaign_id or "",
+                data_format
+            )
+
+            # Row 6: IO ID
+            row += 1
+            worksheet.write(row, col, "IO ID", normal_format)
+            worksheet.write(row, col + 1, line_item.io.io_id(), data_format)
+
+            # Row 7: IO Name
+            row += 1
+            worksheet.write(row, col, "IO Name", normal_format)
+            worksheet.write(row, col + 1, line_item.io.name, data_format)
+
+            # Row 8: Impressions Booked — always TOTAL volume
+            row += 1
+            # worksheet.write(row, col, "Impressions Booked", normal_format)
+            # worksheet.write(row, col + 1, line_item.volume, data_format)
+            
+
+            # Row 9: Start Date — this period's start
+            row += 1
+            worksheet.write(row, col, "Start Date", normal_format)
+            worksheet.write(
+                row, col + 1,
+                period_start.strftime("%d-%B-%Y"),
+                data_format
+            )
+
+            # Row 10: End Date — this period's end
+            row += 1
+            worksheet.write(row, col, "End Date", normal_format)
+            worksheet.write(
+                row, col + 1,
+                period_end.strftime("%d-%B-%Y"),
+                data_format
+            )
+
+            # Row 11: Target CPM — blank
+            row += 1
+            worksheet.write(row, col, "Target CPM", normal_format)
+            worksheet.write(row, col + 1, "", data_format)
+
+            # Row 12: Target CTR — blank
+            row += 1
+            worksheet.write(row, col, "Target CTR", normal_format)
+            worksheet.write(row, col + 1, "", data_format)
+
+            # Row 13: Monthly Target — calculated for this period
+            row += 1
+            month_label = f"{period_start.strftime('%B')} Monthly Target"  # "June Monthly Target"
+            worksheet.write(row, col, month_label, normal_format)
+            worksheet.write(row, col + 1, period_target, data_format)
+
+            # Row 14: Line Item ID
+            row += 1
+            worksheet.write(row, col, "Line Item ID", normal_format)
+            worksheet.write(row, col + 1, line_item.item_id, data_format)
+
+            # Row 15: Line Item Name
+            row += 1
+            worksheet.write(row, col, "Line Item Name", normal_format)
+            worksheet.write(row, col + 1, line_item.description, data_format)
+
+            # Row 16: Ethnicity
+            row += 1
+            worksheet.write(row, col, "Ethnicity", normal_format)
+            worksheet.write(
+                row, col + 1,
+                line_item.ethinicity.title if line_item.ethinicity else "",
+                data_format
+            )
+
+            # Row 17: Ad Format
+            row += 1
+            worksheet.write(row, col, "Ad Format", normal_format)
+            worksheet.write(
+                row, col + 1,
+                line_item.ad_type.title if line_item.ad_type else "",
+                data_format
+            )
+
+            # Row 18: Geography
+            row += 1
+            worksheet.write(row, col, "Geography", normal_format)
+            worksheet.write(row, col + 1, line_item.io.geo or "", data_format)
+
+            # Row 19: Market — blank
+            row += 1
+            worksheet.write(row, col, "Market", normal_format)
+            worksheet.write(row, col + 1, "", data_format)
+
+            # Row 20: Viewability — blank
+            row += 1
+            worksheet.write(row, col, "Viewability", normal_format)
+            worksheet.write(row, col + 1, "", data_format)
+
+            # Row 21: Creative — blank
+            row += 1
+            worksheet.write(row, col, "Creative", normal_format)
+            worksheet.write(row, col + 1, "", data_format)
+
+            # Row 22: VCR — blank
+            row += 1
+            worksheet.write(row, col, "VCR", normal_format)
+            worksheet.write(row, col + 1, "", data_format)
+
+            # Row 23: KPI — blank
+            row += 1
+            worksheet.write(row, col, "KPI", normal_format)
+            worksheet.write(row, col + 1, "", data_format)
+
+            # Row 24: Sitelist — blank
+            row += 1
+            worksheet.write(row, col, "Sitelist", normal_format)
+            worksheet.write(row, col + 1, "", data_format)
+
+            # Each table = 2 data cols + 1 gap col
+            return col + 3
+
+        # ── Main loop: one sheet per line item ──────────────────────────────────
+        for line_item in models.IODetails.objects.filter(
+            io__sub_campaign__campaign=campaign
+        ).select_related(
+            "io",
+            "ethinicity",
+            "ad_type",
+            "io__sub_campaign__campaign__company"
+        ):
+            sheet_name = str(line_item.item_id)
+            worksheet = workbook.add_worksheet(sheet_name)
+
+            # Column widths — repeat for every possible table (up to 6 months)
+            for i in range(6):
+                base = i * 3
+                worksheet.set_column(base,     base,     22)   # label col
+                worksheet.set_column(base + 1, base + 1, 45)   # value col
+                worksheet.set_column(base + 2, base + 2, 3)    # gap col
+
+            # Get month splits for this line item
+            splits = get_monthly_splits(line_item.start_date, line_item.end_date)
+
+            # Write one table per month, side by side
+            col = 0
+            for (period_start, period_end) in splits:
+                col = write_io_setup_table(
+                    worksheet, col,
+                    line_item,
+                    period_start, period_end
+                )
+
         workbook.close()
         output.seek(0)
 
-        response = HttpResponse(output.read(),
-                                content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-        response['Content-Disposition'] = "attachment; filename={}.xlsx".format(slugify(campaign.name[:30]))
-
+        response = HttpResponse(
+            output.read(),
+            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+        response['Content-Disposition'] = "attachment; filename={}.xlsx".format(
+            slugify(campaign.name[:30])
+        )
         output.close()
         return response
+        
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
     # Company shown as client_id only (not full name)

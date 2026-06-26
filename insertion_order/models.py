@@ -419,3 +419,43 @@ class LineItemsPerformance(models.Model):
     class Meta:
         db_table = "tbl_line_item_performance"
         verbose_name = "Line Item"
+
+
+
+# Line Item Pause History model
+
+
+# class LineItemPauseHistory(models.Model):
+#     """
+#     Client-requested pause periods for a line item.
+#     Multiple pause periods allowed per line item.
+    
+#     Example:
+#       LI09603 paused June 14 → June 16
+#       LI09603 paused June 19 → June 19
+#     """
+#     line_item   = models.ForeignKey(
+#         IODetails,
+#         on_delete=models.CASCADE,
+#         related_name="pause_history"
+#     )
+#     paused_from = models.DateField(verbose_name="Paused From")
+#     paused_to   = models.DateField(verbose_name="Paused To")
+#     reason      = models.CharField(
+#         max_length=255,
+#         blank=True,
+#         null=True,
+#         verbose_name="Reason"
+#     )
+#     created_on  = models.DateField(auto_now_add=True)
+
+#     class Meta:
+#         db_table = "tbl_line_item_pause_history"
+#         verbose_name = "Pause Period"
+#         verbose_name_plural = "Pause Periods"
+
+#     def __str__(self):
+#         return f"{self.line_item.item_id} | {self.paused_from} → {self.paused_to}"
+
+#     def paused_days(self):
+#         return (self.paused_to - self.paused_from).days + 1

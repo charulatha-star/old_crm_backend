@@ -1,3 +1,4 @@
+
 import calendar
 from datetime import timedelta, datetime, date
 
@@ -31,23 +32,38 @@ def daterange(start_date, end_date):
 @register.simple_tag()
 def line_item_report(line_tem):
     data = dict()
-    today = datetime.today()
+    today = datetime.today().date()
     data['billing_currency'] = line_tem.io.sub_campaign.campaign.company.billing_currency.iso_code_3
     data['total_days'] = (line_tem.end_date - line_tem.start_date).days + 1
     report_days = models.LineItemsReports.objects.filter(line_item=line_tem, report_on__gte=line_tem.start_date,
                                                          report_on__lte=line_tem.end_date).count()
     data['report_days'] = report_days if report_days else 0
-    data['remaining_days'] = (line_tem.end_date - today.date()).days if (
-                                                                                line_tem.end_date - today.date()).days > 0 else 0
+
+    # Remaining days, anchored to the real current date rather than to which
+    # report rows exist or to day-of-month subtraction:
+    #   - campaign already ended      -> 0 days left
+    #   - campaign hasn't started yet -> the whole campaign is still ahead
+    #   - otherwise                   -> days from today to end_date, inclusive of today
+    if today > line_tem.end_date:
+        data['remaining_days'] = 0
+    elif today < line_tem.start_date:
+        data['remaining_days'] = data['total_days']
+    else:
+        data['remaining_days'] = (line_tem.end_date - today).days + 1
 
     data['archived_impressions'] = line_tem.total_impression()
     data['total_impressions'] = line_tem.volume
     remaining_impressions = line_tem.volume - data['archived_impressions']
     data['remaining_impressions'] = remaining_impressions if remaining_impressions > 0 else 0
-    try:
-        data['daily_target'] = round(line_tem.volume / data['total_days'])
-    except:
+
+    # Dynamic daily target = what's left to deliver / days left to deliver it.
+    # (Swap round() for math.ceil() here if you'd rather pace slightly ahead
+    # than risk under-delivering by end_date.)
+    if data['remaining_days'] > 0:
+        data['daily_target'] = round(data['remaining_impressions'] / data['remaining_days'])
+    else:
         data['daily_target'] = 0
+
     data['reports'] = []
 
     if line_tem.start_date == line_tem.end_date:
@@ -95,11 +111,17 @@ def line_item_report(line_tem):
 @register.simple_tag()
 def insertion_order_report(insertion_order):
     data = dict()
-    today = datetime.today()
+    today = datetime.today().date()
     data['billing_currency'] = insertion_order.sub_campaign.campaign.company.billing_currency.currency_symbols
-    data['total_days'] = (insertion_order.end_date - insertion_order.start_date).days
-    remaining_days = (insertion_order.end_date - today.date()).days
-    data['remaining_days'] = remaining_days if remaining_days > 0 else 0
+    data['total_days'] = (insertion_order.end_date - insertion_order.start_date).days + 1
+
+    if today > insertion_order.end_date:
+        data['remaining_days'] = 0
+    elif today < insertion_order.start_date:
+        data['remaining_days'] = data['total_days']
+    else:
+        data['remaining_days'] = (insertion_order.end_date - today).days + 1
+
     data['archived_impressions'] = insertion_order.total_impression()
     data['total_impressions'] = insertion_order.total_impressions()
     total_clicks = insertion_order.total_clicks()
@@ -112,9 +134,10 @@ def insertion_order_report(insertion_order):
     data['net_cost'] = insertion_order.total_cost()
     remaining_impressions = data['total_impressions'] - data['archived_impressions']
     data['remaining_impressions'] = remaining_impressions if remaining_impressions > 0 else 0
-    try:
-        data['daily_target'] = round(insertion_order.total_impressions() / data['total_days'])
-    except:
+
+    if data['remaining_days'] > 0:
+        data['daily_target'] = round(data['remaining_impressions'] / data['remaining_days'])
+    else:
         data['daily_target'] = 0
     return data
 
@@ -297,3 +320,10 @@ def forecasting_summary_company(request, reporting_dates, company=None, campaign
         "budget": round(total_delivered_budget, 2),
         "forecast": forecast
     }
+
+
+
+
+
+# ============================================================================ 
+

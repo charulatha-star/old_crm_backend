@@ -19,12 +19,17 @@
                     {% csrf_token %}
                     <div class="form-group">
                         <label for="inputGroupFile02">Upload File</label>
+                     
+
+                    <!-- Bootstrap's custom file  -->
                         <div class="custom-file">
                             <input name="csv_file" type="file"
                                    class="custom-file-input {% if errors%}is-invalid{%endif%}"
                                    id="inputGroupFile02" accept=".csv" required>
+
                             <label class="custom-file-label" for="inputGroupFile02">Choose file</label>
                             <div class="invalid-feedback">
+
                                 header missing
                                 <ul>
                                     {% for error in errors %}
@@ -68,4 +73,23 @@
     </div>
 </div>
 <script src="{% static 'custom_admin/js/main.js' %}"></script>
+
+<!-- Added javascript to update the file input label dynamically -->
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const fileInput = document.getElementById('inputGroupFile02');
+
+    fileInput.addEventListener('change', function () {
+        const fileName = this.files.length > 0
+            ? this.files[0].name
+            : 'Choose file';
+
+        this.nextElementSibling.innerHTML = fileName;
+    });
+});
+</script>
 {% endblock %}
+
+
+
+

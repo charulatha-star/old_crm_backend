@@ -12,17 +12,33 @@ from django.shortcuts import redirect
 from billiontags_crm.settings import MEDIA_ROOT
 from insertion_order import models
 
+import pdfkit
 
-# int_to_io, int_to_campaigns, int_to_sub_campaigns, int_to_io_details, int_to_performance_category, int_to_company — all do the same thing for different models. Clean, reusable pattern.
+WKHTMLTOPDF_PATH = r"C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe"
 
-def render_to_pdf(request, order):  # PDF generation 
+
+def render_to_pdf(request, order):
     domain = "http://" + get_current_site(request).name
-    pdfkit.from_url(domain + '/generate-io/{id}/'.format(id=order.pk),
-                    MEDIA_ROOT + '/insertion-orders/{id}.pdf'.format(id=order.order_id))
-
+    config = pdfkit.configuration(wkhtmltopdf=WKHTMLTOPDF_PATH)
+    pdfkit.from_url(
+        domain + '/generate-io/{id}/'.format(id=order.pk),
+        MEDIA_ROOT + '/insertion-orders/{id}.pdf'.format(id=order.order_id),
+        configuration=config
+    )
     order.io_file = '/insertion-orders/{id}.pdf'.format(id=order.order_id)
     order.save()
     return redirect("../../")
+
+# int_to_io, int_to_campaigns, int_to_sub_campaigns, int_to_io_details, int_to_performance_category, int_to_company — all do the same thing for different models. Clean, reusable pattern.
+
+# def render_to_pdf(request, order):  # PDF generation 
+#     domain = "http://" + get_current_site(request).name
+#     pdfkit.from_url(domain + '/generate-io/{id}/'.format(id=order.pk),
+#                     MEDIA_ROOT + '/insertion-orders/{id}.pdf'.format(id=order.order_id))
+
+#     order.io_file = '/insertion-orders/{id}.pdf'.format(id=order.order_id)
+#     order.save()
+#     return redirect("../../")
 
 
 def int_to_io(pk):
@@ -115,3 +131,69 @@ def perform_operation(queryset, new_set):
     new_set = new_set.difference(queryset)
 
     return old_set, new_set
+
+
+
+# New defined function 
+
+
+# def get_active_days(line_item, from_date=None, to_date=None):
+#     """
+#     Line item actual running days calculate
+#     Paused periods-
+
+#     Args:
+#         line_item: IODetails instance
+#         from_date: calculate start (default: line_item.start_date)
+#         to_date:   calculate end   (default: today or line_item.end_date)
+
+#     Returns:
+#         dict: {
+#             'total_days': 11,
+#             'paused_days': 3,
+#             'active_days': 8,
+#             'daily_target': 1250,
+#         }
+#     """
+#     from datetime import date, timedelta
+
+#     start = from_date or line_item.start_date
+#     end   = to_date   or min(line_item.end_date, date.today())
+
+#     total_days = (end - start).days + 1
+#     if total_days <= 0:
+#         return {
+#             'total_days': 0,
+#             'paused_days': 0,
+#             'active_days': 0,
+#             'daily_target': 0,
+#         }
+
+#     # Paused days calculate
+#     paused_days = 0
+#     for pause in line_item.pause_history.all():
+#         # Pause period-ஐ line item range-க்கு clip பண்ணு
+#         pause_start = max(pause.paused_from, start)
+#         pause_end   = min(pause.paused_to,   end)
+
+#         if pause_start <= pause_end:
+#             paused_days += (pause_end - pause_start).days + 1
+
+#     active_days = max(total_days - paused_days, 1)  # minimum 1 day
+
+#     # Daily target
+#     remaining_impressions = line_item.volume - line_item.total_impression()
+#     remaining_impressions = max(remaining_impressions, 0)
+
+#     try:
+#         daily_target = round(remaining_impressions / active_days)
+#     except ZeroDivisionError:
+#         daily_target = 0
+
+#     return {
+#         'total_days'   : total_days,
+#         'paused_days'  : paused_days,
+#         'active_days'  : active_days,
+#         'daily_target' : daily_target,
+#         'remaining_impressions': remaining_impressions,
+#     }

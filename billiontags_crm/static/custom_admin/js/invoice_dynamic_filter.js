@@ -20,9 +20,14 @@
     // Enable / disable dependent fields
     // ------------------------------------------------------------------
 
-    function toggleDependentFields(companySelect, invoiceDateField) {
+    // function toggleDependentFields(companySelect, invoiceDateField) {
+    //     const companyId   = companySelect ? companySelect.value : "";
+    //     const invoiceDate = invoiceDateField ? invoiceDateField.value : "";
+    //     const isReady     = !!(companyId && invoiceDate);
+
+    function toggleDependentFields(companySelect, invoiceMonthField) {
         const companyId   = companySelect ? companySelect.value : "";
-        const invoiceDate = invoiceDateField ? invoiceDateField.value : "";
+        const invoiceDate = invoiceMonthField ? invoiceMonthField.value : "";
         const isReady     = !!(companyId && invoiceDate);
 
         const dependentFields = [
@@ -128,15 +133,18 @@
 
     // ------------------------------------------------------------------
     // Core reload logic
-    // ------------------------------------------------------------------
+    // ------------------------------------------------------------------ invoiceMonthField
 
-    function buildUrlAndReload(companySelect, invoiceDateField) {
+    // function buildUrlAndReload(companySelect, invoiceDateField) {
+    function buildUrlAndReload(companySelect, invoiceMonthField) {
         const companyId  = companySelect ? companySelect.value : "";
-        const invoiceDate = invoiceDateField ? invoiceDateField.value : "";
+        // const invoiceDate = invoiceDateField ? invoiceDateField.value : "";
+        const invoiceDate = invoiceMonthField ? invoiceMonthField.value : "";
 
         // Both fields must be filled before reloading
+        // if (companyId && !invoiceMonth) {
         if (companyId && !invoiceDate) {
-            alert("Please select an Invoice Date before choosing a Company.");
+            alert("First select Invoice Month");
             companySelect.value = "";  // reset company selection
             return;
         }
@@ -145,7 +153,8 @@
 
         const url = new URL(window.location.href);
         url.searchParams.set("company", companyId);
-        url.searchParams.set("invoice_on", invoiceDate);
+        // url.searchParams.set("invoice_on", invoiceDate);
+        url.searchParams.set("invoice_month", invoiceDate);
         window.location.href = url.toString();
     }
 
@@ -155,33 +164,45 @@
 
     function init() {
         const companySelect    = document.getElementById("id_company");
-        const invoiceDateField = document.getElementById("id_invoice_on");
+        // const invoiceDateField = document.getElementById("id_invoice_on");
+        const invoiceMonthField = document.getElementById("id_invoice_month");
 
         if (!companySelect) return;
 
         // Run on page load to disable fields if params are missing
-        toggleDependentFields(companySelect, invoiceDateField);
+        // toggleDependentFields(companySelect, invoiceDateField);
+        toggleDependentFields(companySelect, invoiceMonthField);
 
         // Company changes → alert if invoice_on not filled, else reload
         companySelect.addEventListener("change", function () {
             const companyId   = companySelect.value;
-            const invoiceDate = invoiceDateField ? invoiceDateField.value : "";
+            const invoiceDate = invoiceMonthField ? invoiceMonthField.value : "";
+            // const invoiceDate = invoiceDateField ? invoiceDateField.value : "";
 
             if (companyId && !invoiceDate) {
-                alert("Please select an Invoice Date before choosing a Company.");
+                // alert("Please select an Invoice Date before choosing a Company.");
+                alert("First select Invoice Month");
                 companySelect.value = "";
-                toggleDependentFields(companySelect, invoiceDateField);
+                // toggleDependentFields(companySelect, invoiceDateField);
+                toggleDependentFields(companySelect, invoiceMonthField);
                 return;
             }
 
-            buildUrlAndReload(companySelect, invoiceDateField);
+            // buildUrlAndReload(companySelect, invoiceDateField);
+            buildUrlAndReload(companySelect, invoiceMonthField);
         });
 
         // invoice_on changes → update field states, reload if company also filled
-        if (invoiceDateField) {
-            invoiceDateField.addEventListener("change", function () {
-                toggleDependentFields(companySelect, invoiceDateField);
-                buildUrlAndReload(companySelect, invoiceDateField);
+        // if (invoiceDateField) {
+        if (invoiceMonthField){
+            // invoiceDateField.addEventListener("change", function () {
+            invoiceMonthField.addEventListener("change", function () {
+            
+                // toggleDependentFields(companySelect, invoiceDateField);
+                // buildUrlAndReload(companySelect, invoiceDateField);
+
+                toggleDependentFields(companySelect, invoiceMonthField);
+                buildUrlAndReload(companySelect, invoiceMonthField);
             });
         }
     }
@@ -197,3 +218,185 @@
     }
 
 })();
+
+
+
+
+
+
+
+
+
+
+
+
+
+// (function () {
+//     "use strict";
+
+//     // FIX: actual Django field is "invoice_on" (model: invoice_on = DateField),
+//     // so the real input id is "id_invoice_on" — NOT "id_invoice_month".
+//     // We try id_invoice_on first, fallback to id_invoice_month in case
+//     // the field is ever renamed.
+//     function getInvoiceDateField() {
+//         return document.getElementById("id_invoice_on")
+//             || document.getElementById("id_invoice_month");
+//     }
+
+//     function toggleDependentFields(companySelect, invoiceDateField) {
+//         const companyId = companySelect ? companySelect.value : "";
+//         const invoiceDate = invoiceDateField ? invoiceDateField.value : "";
+//         const isReady = !!(companyId && invoiceDate);
+
+//         const dependentFields = [
+//             "id_contact_person",
+//             "id_campaigns",
+//             "id_additional_discount",
+//             "id_gst",
+//             "id_vat_tax",
+//             "id_from_company_address",
+//             "id_from_company_bank",
+//             "id_authorized_person",
+//         ];
+
+//         dependentFields.forEach(function (fieldId) {
+//             const field = document.getElementById(fieldId);
+
+//             if (field) {
+//                 field.disabled = !isReady;
+//                 field.style.opacity = isReady ? "1" : "0.4";
+//             }
+
+//             const fromBox = document.getElementById(fieldId + "_from");
+//             const toBox = document.getElementById(fieldId + "_to");
+
+//             [fromBox, toBox].forEach(function (el) {
+//                 if (!el) return;
+
+//                 el.disabled = !isReady;
+//                 el.style.opacity = isReady ? "1" : "0.4";
+//             });
+//         });
+//     }
+
+//     function createLoader() {
+//         const overlay = document.createElement("div");
+//         overlay.id = "company-filter-loader";
+//         overlay.style.cssText = `
+//             position: fixed;
+//             inset: 0;
+//             background: rgba(0,0,0,0.45);
+//             display: flex;
+//             align-items: center;
+//             justify-content: center;
+//             z-index: 99999;
+//         `;
+
+//         overlay.innerHTML = `
+//             <div style="
+//                 width:50px;
+//                 height:50px;
+//                 border:5px solid rgba(255,255,255,.3);
+//                 border-top-color:white;
+//                 border-radius:50%;
+//                 animation: spin .8s linear infinite;
+//             "></div>
+//         `;
+
+//         if (!document.getElementById("loader-style")) {
+//             const style = document.createElement("style");
+//             style.id = "loader-style";
+//             style.innerHTML = `
+//                 @keyframes spin {
+//                     to { transform: rotate(360deg); }
+//                 }
+//             `;
+//             document.head.appendChild(style);
+//         }
+
+//         return overlay;
+//     }
+
+//     function showLoader() {
+//         if (!document.getElementById("company-filter-loader")) {
+//             document.body.appendChild(createLoader());
+//         }
+//     }
+
+//     function buildUrlAndReload(companySelect, invoiceDateField) {
+
+//         const companyId = companySelect ? companySelect.value : "";
+//         const invoiceDate = invoiceDateField ? invoiceDateField.value : "";
+
+//         console.log("Company:", companyId);
+//         console.log("Invoice Date:", invoiceDate);
+
+//         if (companyId && !invoiceDate) {
+//             alert("Please select Invoice Date first");
+//             companySelect.value = "";
+//             return;
+//         }
+
+//         showLoader();
+
+//         const url = new URL(window.location.href);
+
+//         url.searchParams.set("company", companyId);
+//         // FIX: backend (InvoiceAdminForm._resolve_invoice_date) reads
+//         // request.GET.get("invoice_on") — keep the query param name
+//         // consistent with the model field, not "invoice_month".
+//         url.searchParams.set("invoice_on", invoiceDate);
+
+//         window.location.href = url.toString();
+//     }
+
+//     function init() {
+
+//         const companySelect = document.getElementById("id_company");
+//         const invoiceDateField = getInvoiceDateField();
+
+//         console.log("Company Field:", companySelect);
+//         console.log("Invoice Date Field:", invoiceDateField);
+
+//         if (!companySelect || !invoiceDateField) {
+//             console.error("Required fields not found (id_company / id_invoice_on)");
+//             return;
+//         }
+
+//         toggleDependentFields(companySelect, invoiceDateField);
+
+//         companySelect.addEventListener("change", function () {
+
+//             const companyId = companySelect.value;
+//             const invoiceDate = invoiceDateField.value;
+
+//             console.log("Company Changed:", companyId);
+//             console.log("Invoice Date Value:", invoiceDate);
+
+//             if (companyId && !invoiceDate) {
+//                 alert("Please select Invoice Date first");
+//                 companySelect.value = "";
+//                 toggleDependentFields(companySelect, invoiceDateField);
+//                 return;
+//             }
+
+//             buildUrlAndReload(companySelect, invoiceDateField);
+//         });
+
+//         invoiceDateField.addEventListener("change", function () {
+
+//             toggleDependentFields(companySelect, invoiceDateField);
+
+//             if (companySelect.value) {
+//                 buildUrlAndReload(companySelect, invoiceDateField);
+//             }
+//         });
+//     }
+
+//     if (document.readyState === "loading") {
+//         document.addEventListener("DOMContentLoaded", init);
+//     } else {
+//         init();
+//     }
+
+// })();

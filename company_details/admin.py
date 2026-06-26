@@ -8,6 +8,7 @@ from django import forms
 from categories.admin import admin_site
 from . import models
 
+ 
 
 # Custom Form with Wallet Top-up
 
@@ -22,6 +23,28 @@ class CompanyDetailsForm(forms.ModelForm):
                 username=self.instance.user.email if self.instance.pk else ""):
             raise ValidationError('Email Id already exists')
         return self.cleaned_data['email']
+
+
+
+class CompanyDetailsAdminForm(CompanyDetailsForm):
+
+    class Meta:
+        model = models.CompanyDetails
+        fields = "__all__"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        if self.instance and self.instance.pk:
+            contacts = models.CompanyContacts.objects.filter(
+                company=self.instance
+            )
+
+            self.fields["default_contact_person"].queryset = contacts
+            self.fields["default_contact_person"].label_from_instance = (
+                lambda obj: obj.name
+            )
+
 
 
 # This function is used to display the wallet transaction history link in the admin list view. It generates a URL that points to the CompanyWalletHistory admin page, filtered by the current company. 
@@ -67,22 +90,80 @@ class CompanyAddressAdminInline(admin.StackedInline):
 
 @admin.register(models.CompanyDetails, site=admin_site)
 class CompanyDetailsAdmin(admin.ModelAdmin):
+    
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+
+        if db_field.name == "default_contact_person":
+            object_id = request.resolver_match.kwargs.get("object_id")
+
+            if object_id:
+                kwargs["queryset"] = models.CompanyContacts.objects.filter(
+                    company_id=object_id
+                )
+
+            field = super().formfield_for_foreignkey(
+                db_field,
+                request,
+                **kwargs
+            )
+
+            field.label_from_instance = lambda obj: obj.name
+            return field
+
+        return super().formfield_for_foreignkey(
+            db_field,
+            request,
+            **kwargs
+        )
+
+
+
+
     list_display = ("client_id", "name", "phone_number", "payment_type", "payment_term", "country",
                     "company_billing_currency", "is_active", "wallet_amount", "credited_amount", "debited_amount",
                     "view_history")
 
     readonly_fields = ("created_on", "wallet_amount", 'credited_amount', "debited_amount", "client_id")
     search_fields = ("name",)
-    form = CompanyDetailsForm
+    #form = CompanyDetailsForm
+    form = CompanyDetailsAdminForm
     list_filter = ("payment_type", "payment_term", "country")
     inlines = [CompanyContactsAdminInline, CompanyAddressAdminInline]
     fieldsets = (
-        ("", {"fields": (("client_id", "report_id"), ("name", "phone_number", "email"),
-                         "address_line_1", "address_line_2", ("country", "zipcode"),
-                         ("payment_type", "payment_term", "billing_currency"), ("gst_no", "cin_no"),
-                         ("is_domestic", "is_active"), "created_on")}),
-        ("Wallet Details", {"fields": (("wallet_amount", "credited_amount", "debited_amount"), "add_wallet_points")})
-    )
+    ("", {
+        "fields": (
+            ("client_id", "report_id"),
+            ("name", "phone_number", "email"),
+            "address_line_1",
+            "address_line_2",
+            ("country", "zipcode"),
+            ("payment_type", "payment_term", "billing_currency"),
+            ("gst_no", "cin_no"),
+            ("is_domestic", "is_active"),
+            # add this fields 
+
+            (
+                "default_invoice_address",
+                "default_invoice_bank",
+                "default_authorized_person"
+            ),
+
+            (
+                "default_contact_person",
+                "invoice_type"
+            ),
+
+            "created_on",
+        )
+    }),
+    ("Wallet Details", {
+        "fields": (
+            ("wallet_amount", "credited_amount", "debited_amount"),
+            "add_wallet_points"
+        )
+    })
+)
 
     def save_model(self, request, obj, form, change):
         if not change:  # only on NEW company creation

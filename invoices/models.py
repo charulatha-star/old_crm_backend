@@ -13,7 +13,6 @@ INVOICE_STATUS = (
 )
 
 
-
 class Invoices(models.Model):
     objects = None
     invoice_no = models.CharField(max_length=120, unique=True, verbose_name="Invoice Number")   # "BTU2600001" - auto-generated
@@ -24,7 +23,8 @@ class Invoices(models.Model):
     contact_person = models.ForeignKey(CompanyContacts, on_delete=models.CASCADE)  # who to bill
     total_amount = models.FloatField(default=0.0) # raw total amount before discount and tax
     due_date = models.DateField()  # payment due date
-    additional_discount = models.PositiveIntegerField(default=0.0, verbose_name="Offers or Discount")  # discount given
+    #additional_discount = models.PositiveIntegerField(default=0.0, verbose_name="Offers or Discount")  # discount given
+    additional_discount = models.FloatField(default=0.0, verbose_name="Offers or Discount")
     vat_tax = models.PositiveIntegerField(default=0.0, verbose_name="VAT %", blank=True, null=True,)   # VAT % (e.g. 5%)
     gst = models.PositiveIntegerField(verbose_name="GST %", blank=True, null=True)   # GST % (e.g. 18%)
     total_discount = models.FloatField(verbose_name="Bill Adjustment", default=0.0)
@@ -40,6 +40,20 @@ class Invoices(models.Model):
     created_on = models.DateField(auto_now_add=True, verbose_name="Invoice Date")
     updated_on = models.DateField(auto_now=True)
 
+    invoice_month = models.DateField(
+    null=True,
+    blank=True,
+    verbose_name="Invoice Month")
+    
+    invoice_type = models.CharField(
+    max_length=20,
+    choices=(
+        ("single", "Single"),
+        ("multiple", "Multiple"),
+    ),
+    default="single"
+)
+
     class Meta:
         db_table = "tbl_invoice"
         verbose_name = "Invoice"
@@ -48,9 +62,9 @@ class Invoices(models.Model):
     def __str__(self):
         return self.invoice_no
 
-    def total_pay_amount(self):
-        # billing_amount - discount  --> 53000 - 1000 = 52000 total amount payable by client
-        return round(self.billing_amount - self.additional_discount, 2)
+    # def total_pay_amount(self):
+    #     # billing_amount - discount  --> 53000 - 1000 = 52000 total amount payable by client
+    #     return round(self.billing_amount - self.additional_discount, 2)
 
     def total_line_items(self):
         # sum of all line item net costs
@@ -65,10 +79,31 @@ class Invoices(models.Model):
             return round(volume, 2)
         return 0
 
+    # def additional_discount_per(self):
+    #     try:
+    #         return round((self.additional_discount / self.billing_amount) * 100, 2)
+    #     except (ZeroDivisionError, TypeError):
+    #         return 0
+    #     # if self.additional_discount:
+    #     #     return round((self.additional_discount / self.billing_amount) * 100, 2)
+    #     # return 0
+
+
     def additional_discount_per(self):
-        if self.additional_discount:
-            return round((self.additional_discount / self.billing_amount) * 100, 2)
-        return 0
+        try:
+            return round((self.additional_discount / self.billing_amount) * 100, 4)
+        except (ZeroDivisionError, TypeError):
+            return 0
+
+    def total_pay_amount(self):
+        result = round(self.billing_amount - self.additional_discount, 2)
+        return max(result, 0)  # Never negative
+
+
+
+
+
+
 
     def total_paid(self):
          # total payments received so far

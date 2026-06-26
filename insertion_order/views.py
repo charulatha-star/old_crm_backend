@@ -35,6 +35,7 @@ def generate_io_date(request, pk):
 
 def error_upload(rowdict, header_list=None, mode="w"):
     with open(settings.STATICFILES_DIRS[0] + 'custom_admin/files/bulk_upload_error.csv', mode, newline='') as csvfile:
+    
 
         fieldnames = header_list if header_list else []
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)

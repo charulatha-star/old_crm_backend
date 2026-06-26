@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
 from django.db import models
 
-from categories.models import Country, Roles, PaymentTerms
+from categories.models import Country, Roles, PaymentTerms, InvoiceCompanyAddress, InvoiceBankDetails, InvoiceAuthorizedPerson
 
 PAYMENT_TERM = (
     ("Pre Payment", "Pre Payment"),
@@ -29,6 +29,16 @@ class CompanyDetails(models.Model):
     payment_type = models.CharField(max_length=50, choices=PAYMENT_TERM)
     payment_term = models.ForeignKey(PaymentTerms, on_delete=models.CASCADE, blank=True, null=True)
     is_active = models.BooleanField(default=True)
+
+    # New Field add
+    INVOICE_TYPE = (("single", "Single Invoice"),("multiple", "Multiple Invoice"),)
+    default_contact_person = models.ForeignKey('CompanyContacts',blank=True,null=True,on_delete=models.SET_NULL,related_name="default_invoice_contact",verbose_name="Contact person")
+    invoice_type = models.CharField(max_length=20,choices=INVOICE_TYPE,default="single")
+    default_invoice_address = models.ForeignKey(InvoiceCompanyAddress,blank=True,null=True,on_delete=models.SET_NULL, verbose_name="From company address")
+    default_invoice_bank = models.ForeignKey(InvoiceBankDetails,blank=True,null=True,on_delete=models.SET_NULL, verbose_name="From bank account")
+    default_authorized_person = models.ForeignKey(InvoiceAuthorizedPerson,blank=True,null=True,on_delete=models.SET_NULL, verbose_name = 'Authorized person')
+
+
     created_on = models.DateTimeField(auto_now_add=True)
     updated_on = models.DateTimeField(auto_now=True)
 
