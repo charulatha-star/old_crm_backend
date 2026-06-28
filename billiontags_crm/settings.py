@@ -179,5 +179,6 @@ FILE_UPLOAD_MAX_MEMORY_SIZE = 20242880     # ~20MB
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 30000      # huge number!
 
 # WKHTMLTOPDF_CMD = '/usr/bin/wkhtmltopdf' (linux)
+
 # Activate 
 # .\billiontags-crm-env\bin\activate.ps1 

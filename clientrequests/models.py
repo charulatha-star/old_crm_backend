@@ -18,7 +18,6 @@ class CampaignRequest(models.Model):
 
 
 
-
 class CampaignRequestImages(models.Model):
     objects = None
     campaign_request = models.ForeignKey(CampaignRequest, on_delete=models.CASCADE)
