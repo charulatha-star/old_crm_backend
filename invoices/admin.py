@@ -23,9 +23,7 @@ from company_details.models import CompanyDetails
 from insertion_order.models import Campaigns, IODetails
 
 
-# Add this (18/06)
-# from django.http import JsonResponse
-# from insertion_order.models import Campaigns, IODetails
+
 
 
 # ---------------------------------------------------------------------------
@@ -60,7 +58,7 @@ class PaymentHistoryAdminInline(admin.StackedInline):
 
 
 # ---------------------------------------------------------------------------
-# Proxy Models (No new database tables, just different admin views based on invoice status)
+# Proxy Models (No new database tables, just different admin views based on invoice status) # Sidebar views 
 # ---------------------------------------------------------------------------
 
 # ADMIN SIDE BAR SHOWS: (INVOICE AND PAYMENT STATUS)
@@ -289,12 +287,12 @@ class AllInvoice(models.Invoices):  # all invoices regardless of payment status 
 #             company=company, is_active=True, start_date__lte=end_of_month, end_date__gte=start_of_month).order_by("name")
         
 
-
+# Django ModelForm used in the Django Admin for the Invoices model.
 class InvoiceAdminForm(forms.ModelForm):
-    invoice_month = forms.ChoiceField(choices=[])
+    invoice_month = forms.ChoiceField(choices=[])       # custom dropdown field of months
 
     #  One smart field — % or amount accept
-    additional_discount = forms.CharField(
+    additional_discount = forms.CharField(   # discount field (instead of using decimel field we use text field. so use 100 or 10%)
         required=False,
         label="Offers or Discount",
         widget=forms.TextInput(attrs={
@@ -519,7 +517,6 @@ class InvoiceAdminForm(forms.ModelForm):
             start_date__lte=end_of_month,
             end_date__gte=start_of_month
         ).order_by("name")    
-
 
 
 

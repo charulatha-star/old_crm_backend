@@ -17,6 +17,7 @@ from django.conf.urls import url
 from django.contrib import admin
 from django.urls import path, include
 from django.views.static import serve
+from insertion_order.views import download_error_report
 
 from billiontags_crm import settings
 from categories.admin import admin_site      # Custom admin
@@ -47,6 +48,7 @@ urlpatterns = [
 
                   # Insertion order urls 
                   path('insertion_order/bulk-upload/download-report/', download_report, name="report_bulk_download"),   # Download after upload
+                  path('insertion_order/download-error-report/', download_error_report, name='download_error_report'),  # add this on 29/06/26
                   path('insertion_order/line-item/<int:pk>/', line_item_status_request,name="update_line_item_status"),  # Update single line item
                   path('insertion_orders/line-items/', LineItemsPerformanceViews.as_view(),name="Line_Items_Performance"), # View all line items
 

@@ -20,8 +20,12 @@ from clientrequests.models import LineItemRequest
 from insertion_order import utils, models
 from insertion_order.models import LineItemsPerformance, IODetails
 from insertion_order.utils import int_to_performance_category
+import os
 
 # Renders the Insertion Order as an HTML page (used as input for PDF generation by utils.render_to_pdf). Two templates — one with dates, one without.
+# ---------------------------------------------------------------------------
+# IO Generation
+# ---------------------------------------------------------------------------
 
 def generate_io(request, pk):
     order = utils.int_to_io(pk)
@@ -31,6 +35,7 @@ def generate_io(request, pk):
 def generate_io_date(request, pk):
     order = utils.int_to_io(pk)
     return render(request, "io_template_date.html", {"order": order})
+
 
 
 def error_upload(rowdict, header_list=None, mode="w"):
@@ -49,6 +54,8 @@ def error_upload(rowdict, header_list=None, mode="w"):
                 write_dict[field] = rowdict.get(field, "")
 
             writer.writerow(write_dict)
+
+
 
 
 @staff_member_required
@@ -76,6 +83,22 @@ def download_report(request):
                          obj.io.sub_campaign.booking_id, obj.io.sub_campaign.name, obj.io.io_id(), obj.io.name,
                          obj.item_id, obj.description])
     return response
+
+
+# Add this file on (29/06/2026)
+@staff_member_required
+def download_error_report(request):
+    file_path = settings.STATICFILES_DIRS[0] + 'custom_admin/files/bulk_upload_error.csv'
+    
+    if os.path.exists(file_path):
+        with open(file_path, 'r') as f:
+            response = HttpResponse(f.read(), content_type='text/csv')
+            response['Content-Disposition'] = 'attachment; filename="bulk_upload_error.csv"'
+            return response
+    
+    return HttpResponse("Error file not found.", status=404)
+
+
 
 #  Bulk Report Upload
 @staff_member_required

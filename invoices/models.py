@@ -24,6 +24,7 @@ class Invoices(models.Model):
     total_amount = models.FloatField(default=0.0) # raw total amount before discount and tax
     due_date = models.DateField()  # payment due date
     #additional_discount = models.PositiveIntegerField(default=0.0, verbose_name="Offers or Discount")  # discount given
+    
     additional_discount = models.FloatField(default=0.0, verbose_name="Offers or Discount")
     vat_tax = models.PositiveIntegerField(default=0.0, verbose_name="VAT %", blank=True, null=True,)   # VAT % (e.g. 5%)
     gst = models.PositiveIntegerField(verbose_name="GST %", blank=True, null=True)   # GST % (e.g. 18%)

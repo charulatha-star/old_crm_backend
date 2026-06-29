@@ -1642,8 +1642,6 @@ class CampaignsAdmin(admin.ModelAdmin):
         
 
 
-
-
     # Company shown as client_id only (not full name)
     def company_name(self, obj):
         if self.request.user.groups.filter(name="Juniors_logins").exists():

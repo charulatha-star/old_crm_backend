@@ -52,7 +52,8 @@
                     <div class="col-6">
                         <h6 class="text-danger">Errors in Reports: {{error_report_count}}</h6>
                         {% if error_report_count > 0 %}
-                        <a href="{% static 'custom_admin/files/bulk_upload_error.csv' %}"> Download Error Report</a>
+                        <!-- <a href="{% static 'custom_admin/files/bulk_upload_error.csv' %}"> Download Error Report</a> -->
+                        <a href="/insertion_order/download-error-report/">Download Error Report</a>
                         {% endif %}
                     </div>
                     {%endif%}
