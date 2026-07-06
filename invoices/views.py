@@ -8,6 +8,8 @@ from django.shortcuts import render, redirect
 from django.utils.decorators import method_decorator
 from easy_pdf.views import PDFTemplateView
 
+from invoices.utils import get_aed_conversion
+
 from invoices import utils
 
 # Version 1 — Old HTML view (just renders template)
@@ -26,12 +28,54 @@ def generate_invoice(request, pk):
     return render(request, "invoice_template.html", data)
 
 
-# PDF Download (staff only) — uses easy_pdf library to render the same template as a PDF. This is the view linked to the "Download Invoice" button in the admin list display and change form.
+# # PDF Download (staff only) — uses easy_pdf library to render the same template as a PDF. This is the view linked to the "Download Invoice" button in the admin list display and change form.
+# @method_decorator(staff_member_required, name='dispatch')
+# class GenerateInvoiceView(PDFTemplateView, ):
+#     template_name = "invoice_template.html"
+
+#     def get(self, request, *args, **kwargs):
+#         response = super(GenerateInvoiceView, self).get(request, *args, **kwargs)
+#         if not self.request.user.has_perm('invoices.view_invoices'):
+#             return HttpResponseRedirect("/")
+#         return response
+
+#     def get_context_data(self, **kwargs):
+#         invoice = utils.int_to_invoice(self.kwargs['pk'])
+#         utils.invoice_amount_calculation(invoice)
+
+#         show_po = False
+#         for campaign in invoice.campaigns.all():
+#             if campaign.purchase_order_no:
+#                 show_po = True
+#                 break
+        
+#         # # --- Add this ---
+#         # aed_conversion = None
+#         # if self.request.GET.get("aed") == "1":
+#         #     aed_conversion = utils.get_aed_conversion(invoice)
+#         # # ----------------
+
+#         return super(GenerateInvoiceView, self).get_context_data(
+#             pagesize='A4',
+#             filename="{}.pdf".format(invoice, invoice),
+#             title='{}'.format(invoice),
+#             invoice=invoice,
+#             show_po=show_po,
+#            # aed_conversion=aed_conversion, 
+#             **kwargs)
+
+
 @method_decorator(staff_member_required, name='dispatch')
 class GenerateInvoiceView(PDFTemplateView, ):
     template_name = "invoice_template.html"
 
     def get(self, request, *args, **kwargs):
+        # Pick template based on aed query param — normal invoice untouched
+        if self.request.GET.get("aed") == "1":
+            self.template_name = "invoice_template_aed.html"
+        else:
+            self.template_name = "invoice_template.html"
+
         response = super(GenerateInvoiceView, self).get(request, *args, **kwargs)
         if not self.request.user.has_perm('invoices.view_invoices'):
             return HttpResponseRedirect("/")
@@ -47,13 +91,24 @@ class GenerateInvoiceView(PDFTemplateView, ):
                 show_po = True
                 break
 
+        aed_conversion = None
+        if self.request.GET.get("aed") == "1":
+            aed_conversion = utils.get_aed_conversion(invoice)
+
         return super(GenerateInvoiceView, self).get_context_data(
             pagesize='A4',
             filename="{}.pdf".format(invoice, invoice),
             title='{}'.format(invoice),
             invoice=invoice,
             show_po=show_po,
+            aed_conversion=aed_conversion,
             **kwargs)
+
+
+
+
+
+
 
 
 # Version 3 — PDF download (alternate template) 

@@ -48,8 +48,7 @@ class SuitConfig(DjangoSuitConfig):
             ChildItem('Invoice Summary', url='/reports/invoice-summary/',
                       permissions=['invoices.view_allinvoice']),
 
-            #ChildItem('Invoice Reconciliation', url='/admin/invoices/invoice-reconciliation/', permissions=['invoices.view_allinvoice']),
-            #ChildItem('Invoice Reconciliation', url='/invoices/allinvoice/invoice-reconciliation/', permissions=['invoices.view_allinvoice']),
+            
             ChildItem('Invoice Reconciliation', url='/reports/invoice-summary-reconciliation/',permissions=['invoices.view_allinvoice']),
 
         ], icon='fa fa-leaf'),
@@ -68,6 +67,8 @@ class SuitConfig(DjangoSuitConfig):
             ChildItem(model='categories.roles'),
             ChildItem(model='categories.teams'),
             ChildItem(model='categories.performancecategory'),
+            #ChildItem(model='categories.currency', label="Currency"), 
+            ChildItem(model='categories.aedexchangeratemonth', label="AED Exchange Rates"),
         ], icon='fa fa-leaf'),
         ParentItem('Invoice Reports', children=[
             ChildItem('Not Generated Invoice', url='/reports/invoice-not-yet-generated/',

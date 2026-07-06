@@ -1,4 +1,5 @@
 
+
 # The Entire UI of This CRM
 
 
@@ -8,6 +9,7 @@ from django.contrib.admin import AdminSite  # custom admin panel
 from categories import models
 from categories.models import PerformanceSubCategory, PerformanceCategory, InvoiceBankDetails, InvoiceCompanyAddress, \
     InvoiceAuthorizedPerson
+
 
 
 # Custom Admin Site
@@ -178,3 +180,58 @@ class InvoiceBankDetailsAdmin(admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return False
+    
+
+
+# # Add this
+
+from categories.models import AedExchangeRateMonth, AedExchangeRate    # <-- add this import
+from django import forms
+import calendar
+from datetime import date
+
+
+class AedExchangeRateInlineForm(forms.ModelForm):
+    class Meta:
+        model = models.AedExchangeRate
+        fields = ("currency", "exchange_rate", "is_active")
+           # effective_date REMOVED — auto-calculated, never shown
+
+
+class AedExchangeRateInline(admin.TabularInline):
+    model = models.AedExchangeRate
+    form = AedExchangeRateInlineForm
+    fields = ("currency", "exchange_rate", "is_active")
+      # effective_date not shown to admin at all
+    extra = 1
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(AedExchangeRateMonth, site=admin_site)
+class AedExchangeRateMonthAdmin(admin.ModelAdmin):
+    list_display = ("month", "year", "created_on")
+    list_filter = ("year", "month")
+    inlines = [AedExchangeRateInline]
+
+    class Media:
+        css = {
+            "all": ("custom_admin/css/custom.css",)
+        }
+
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def save_formset(self, request, form, formset, change):
+        instances = formset.save(commit=False)
+        month_obj = form.instance
+        last_day = calendar.monthrange(month_obj.year, month_obj.month)[1]
+        end_date = date(month_obj.year, month_obj.month, last_day)
+
+        for instance in instances:
+            instance.effective_date = end_date   # auto-set here, form never asks for it
+            instance.save()
+
+        formset.save_m2m()

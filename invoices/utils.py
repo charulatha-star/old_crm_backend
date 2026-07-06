@@ -7,6 +7,7 @@ from django.db.models import Sum, Max
 
 from insertion_order.models import IODetails
 from invoices import models
+from categories.models import AedExchangeRateMonth, AedExchangeRate
 
 
 def int_to_invoice(pk):
@@ -141,3 +142,59 @@ def invoice_amount_calculation(invoice, deleted_set=None):
     invoice.billing_amount = round(invoice.gst_amount + invoice.vat_tax_amount + total_billing_amount, 2)   # ₹48,000 + ₹8,640 = ₹56,640 final invoice amount
     invoice.save()
     return
+
+
+# ADD THIS 
+def get_aed_conversion(invoice):
+    """
+    Returns a dict with AED converted amount + rate used, or None if:
+      - company has not enabled AED invoice
+      - no matching exchange rate found for invoice month/currency
+    """
+    company = invoice.company
+
+    # Step 1: Company AED invoice enabled-a check pannunga
+    if not getattr(company, "enable_aed_invoice", False):
+        return None
+
+    # Step 2: Company billing currency edukanum (e.g. "AUD", "USD", "CAD")
+    currency_code = company.billing_currency.iso_code_3
+
+    # AED company-ku AED conversion தேவை இல்ல
+    if currency_code == "AED":
+        return None
+
+    # Step 3: Invoice period end date (invoice_to) vachi matching month/year
+    invoice_month = invoice.invoice_to.month
+    invoice_year = invoice.invoice_to.year
+
+    rate_month = AedExchangeRateMonth.objects.filter(
+        month=invoice_month,
+        year=invoice_year
+    ).first()
+
+    if not rate_month:
+        return None
+
+    # Step 4: Andha currency-oda rate edukanum
+    rate_obj = AedExchangeRate.objects.filter(
+        month=rate_month,
+        currency=currency_code,
+        is_active=True
+    ).first()
+
+    if not rate_obj:
+        return None
+
+    # Step 5: Calculation
+    original_amount = invoice.total_pay_amount()
+    exchange_rate = float(rate_obj.exchange_rate)
+    aed_amount = round(original_amount * exchange_rate, 2)
+
+    return {
+        "original_amount": original_amount,
+        "original_currency": currency_code,
+        "exchange_rate": exchange_rate,
+        "aed_amount": aed_amount,
+        "effective_date": rate_obj.effective_date,
+    }

@@ -20,8 +20,13 @@ from django.views.static import serve
 from insertion_order.views import download_error_report
 
 from billiontags_crm import settings
-from categories.admin import admin_site      # Custom admin
-from categories.views import send_email_view
+
+
+
+from categories.admin import admin_site
+from categories.views import send_email_view, aed_exchange_rates, add_aed_exchange_rate   # single line, remove the other
+
+
 from insertion_order.views import generate_io, generate_io_date, custom_admin_view, download_report, \
     line_item_status_request, LineItemsPerformanceViews
 from invoices import views
@@ -30,6 +35,11 @@ from reports.views import UnderPacingLineItem, OverPacingLineItem, ReportNotLine
     InvoiceUnderDeliveredView, InvoiceOverDeliveredView, InvoiceSummaryReconciliationView 
 
 urlpatterns = [
+
+
+                  path('categories/aedexchangerates/', aed_exchange_rates, name='aed_exchange_rates'),
+                  path('categories/aedexchangerates/add/', add_aed_exchange_rate, name='add_aed_exchange_rate'),
+
                   path('insertion_order/bulk-upload/', custom_admin_view, name="report_bulk_upload"), # Upload bulk data
 
                   path('reports/invoice-not-yet-generated/', InvoiceYetNotGeneratedView.as_view(),

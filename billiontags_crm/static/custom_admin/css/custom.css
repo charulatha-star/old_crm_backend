@@ -1,3 +1,4 @@
+
 :root{
     --primary-color: #2783f3;
     --chart-color: #000
@@ -433,4 +434,163 @@ opacity:1;
     color: #fff;
     font-size: 100% !important;
     background-color: #dc3545;
+}
+
+
+
+
+
+
+/* Fix AED Exchange Rate inline table headers */
+.tabular.inline-related table th {
+    background: #79aec8;
+    color: #fff;
+    text-align: left;
+    white-space: normal;
+}
+
+.tabular.inline-related table td {
+    padding: 8px 10px;
+    vertical-align: middle;
+}
+
+
+/* Hide the first empty/original column */
+.inline-group .tabular th.original,
+.inline-group .tabular td.original {
+    display: none !important;
+}
+
+/* ======== */
+
+
+/* AED Exchange Rate inline table styling */
+.inline-group .tabular table thead th.column-currency {
+    width: 25%;
+}
+.inline-group .tabular table thead th.column-exchange_rate {
+    width: 45%;
+}
+.inline-group .tabular table thead th.column-is_active {
+    width: 15%;
+    text-align: center;
+}
+.inline-group .tabular table tbody td.field-is_active {
+    text-align: center;
+}
+.inline-group .tabular table thead th,
+.inline-group .tabular table tbody td {
+    vertical-align: middle;
+    padding: 8px 10px;
+}
+
+
+
+
+
+
+
+
+/* ==== Next round of polish for AED Exchange Rate inline ==== */
+
+/* Rebalance column widths - give Exchange Rate more room */
+.inline-group .tabular table thead th.column-currency {
+    width: 30%;
+}
+.inline-group .tabular table thead th.column-exchange_rate {
+    width: 50%;
+}
+.inline-group .tabular table thead th.column-is_active {
+    width: 20%;
+    text-align: center;
+}
+
+/* Rounded corners on the inline table, consistent with #result_list elsewhere */
+.tabular.inline-related table {
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid rgba(72,94,144,.16);
+}
+
+/* Slightly darker header on hover-free state so it doesn't look flat */
+.tabular.inline-related table th {
+    font-weight: 500 !important;
+    font-size: 13px;
+}
+
+/* Zebra-strip the rows if you ever have multiple currency rows, for readability */
+.inline-group .tabular table tbody tr:nth-child(even) td {
+    background-color: #f9fafb !important;
+}
+
+/* Tighten up the "Remove" checkbox + label so it doesn't wrap awkwardly */
+.inline-group .tabular td.delete {
+    text-align: center;
+    vertical-align: middle;
+}
+.inline-group .tabular td.delete label {
+    font-size: 12px;
+    color: #8392a5;
+}
+
+/* "Add another AED Exchange Rate" link - make it match your .addlink button style */
+.inline-group .add-row a {
+    color: var(--primary-color) !important;
+    font-weight: 500;
+}
+
+
+
+
+
+
+
+/* Make sure inputs fill their cell instead of shrinking to content */
+.inline-group .tabular table tbody td.field-currency select,
+.inline-group .tabular table tbody td.field-exchange_rate input {
+    width: 90%;
+}
+
+/* Fix the zebra stripe so it covers the full row, not stray cells */
+.inline-group .tabular table tbody tr:nth-child(even) td {
+    background-color: #f9fafb !important;
+    width: auto;
+}
+
+
+
+
+
+
+
+/* Real fix: tbody rows are flex (django-suit), so use flex-basis not width */
+.inline-group .tabular table tbody tr.form-row {
+    display: flex;
+    width: 100%;
+}
+
+.inline-group .tabular table tbody tr.form-row td.field-currency {
+    flex: 0 0 30%;
+    max-width: 30%;
+}
+
+.inline-group .tabular table tbody tr.form-row td.field-exchange_rate {
+    flex: 0 0 50%;
+    max-width: 50%;
+}
+
+.inline-group .tabular table tbody tr.form-row td.field-is_active {
+    flex: 0 0 20%;
+    max-width: 20%;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+}
+
+/* Inputs should fill their flex cell */
+.inline-group .tabular table tbody td.field-currency select,
+.inline-group .tabular table tbody td.field-exchange_rate input {
+    width: 90%;
 }

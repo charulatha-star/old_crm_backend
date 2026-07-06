@@ -661,8 +661,8 @@ class InvoicesAdmin(admin.ModelAdmin):
             "total_pay_amount", "total_paid", "balance_amount",
         )
         if request.user.groups.filter(pk=2).exists():
-            return base + ("view_io",)
-        return base + ("invoice_approval", "view_io", "update_payment")
+            return base + ("view_io", "view_aed_invoice")
+        return base + ("invoice_approval", "view_io",  "view_aed_invoice", "update_payment")
 
     # ------------------------------------------------------------------
     # Extra URLs
@@ -1533,6 +1533,22 @@ class InvoicesAdmin(admin.ModelAdmin):
         )
 
     view_io.short_description = "View Invoice"
+
+
+    def view_aed_invoice(self, obj):
+        if obj.company.enable_aed_invoice:
+            return mark_safe(
+                "<a href='/generate-invoice-new/{id}/?aed=1' target='_blank' "
+                "class='btn btn-sm btn-outline-info'>View AED Invoice</a>".format(id=obj.id)
+            )
+        return mark_safe("<span class='text-muted'>-</span>")
+
+    view_aed_invoice.short_description = "AED Invoice"
+
+
+
+
+
 
     def invoice_approval(self, obj):
         if not obj.is_approved:

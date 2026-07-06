@@ -140,7 +140,8 @@ class CompanyDetailsAdmin(admin.ModelAdmin):
             ("country", "zipcode"),
             ("payment_type", "payment_term", "billing_currency"),
             ("gst_no", "cin_no"),
-            ("is_domestic", "is_active"),
+            ("is_domestic", "is_active", "enable_aed_invoice"),
+            
             # add this fields 
 
             (

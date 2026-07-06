@@ -25,6 +25,14 @@ class CompanyDetails(models.Model):
     gst_no = models.CharField(max_length=40, blank=True, null=True)
     cin_no = models.CharField(max_length=50, blank=True, null=True)
     is_domestic = models.BooleanField()
+
+    enable_aed_invoice = models.BooleanField(
+        default=False,
+        verbose_name="Enable AED Invoice",
+        help_text="If checked, an additional 'View AED Invoice' PDF option will be shown for this company's invoices."
+    )
+
+
     wallet_amount = models.PositiveIntegerField(default=0, verbose_name="Wallet Available Amount")
     payment_type = models.CharField(max_length=50, choices=PAYMENT_TERM)
     payment_term = models.ForeignKey(PaymentTerms, on_delete=models.CASCADE, blank=True, null=True)

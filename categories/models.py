@@ -308,3 +308,75 @@ class InvoiceAuthorizedPerson(models.Model):
         with open(self.company_logo_sign.path, "rb") as image_file:
             encoded_string = base64.b64encode(image_file.read())
             return "data:image/png;base64," + encoded_string.decode('utf-8')
+
+
+
+# Add this 
+import calendar
+from django.core.validators import MinValueValidator
+
+# ... existing imports already unga file la irukku
+
+class AedExchangeRateMonth(models.Model):
+    objects = None
+
+    MONTH_CHOICES = (
+        (1, "January"), (2, "February"), (3, "March"), (4, "April"),
+        (5, "May"), (6, "June"), (7, "July"), (8, "August"),
+        (9, "September"), (10, "October"), (11, "November"), (12, "December"),
+    )
+
+    month = models.PositiveSmallIntegerField(choices=MONTH_CHOICES)
+    year = models.PositiveSmallIntegerField()
+    created_on = models.DateTimeField(auto_now_add=True)
+    updated_on = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "tbl_aed_exchange_rate_month"
+        verbose_name = "AED Exchange Rate Month"
+        verbose_name_plural = "AED Exchange Rate Months"
+        unique_together = ("month", "year")
+        ordering = ("year", "month")
+
+    def __str__(self):
+        return "{} {}".format(dict(self.MONTH_CHOICES).get(self.month), self.year)
+
+
+class AedExchangeRate(models.Model):
+    objects = None
+
+    CURRENCY_CHOICES = (
+        ("USD", "USD"),
+        ("AUD", "AUD"),
+        ("CAD", "CAD"),
+        ("EUR", "EUR"),
+        ("NZD", "NZD"),    
+    )
+
+    month = models.ForeignKey(
+        AedExchangeRateMonth,
+        on_delete=models.CASCADE,
+        related_name="rates"
+    )
+    currency = models.CharField(max_length=3, choices=CURRENCY_CHOICES)
+    exchange_rate = models.DecimalField(
+        max_digits=12, decimal_places=6,
+        validators=[MinValueValidator(0)]
+    )
+    effective_date = models.DateField(
+        help_text="CBUAE end-of-month date, eg: 2026-05-31"
+    )
+    is_active = models.BooleanField(default=True)
+    created_on = models.DateTimeField(auto_now_add=True)
+    updated_on = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "tbl_aed_exchange_rate"
+        verbose_name = "AED Exchange Rate"
+        verbose_name_plural = "AED Exchange Rates"
+        unique_together = ("month", "currency")
+
+    def __str__(self):
+        return "{} - {} - {}".format(self.month, self.currency, self.exchange_rate)
+    
+
