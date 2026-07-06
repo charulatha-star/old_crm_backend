@@ -54,7 +54,7 @@ urlpatterns = [
                   path('reports/over-pacing/', OverPacingLineItem.as_view(), name="over_pacing_report"),
                   path('reports/not-uploaded/', ReportNotLineItem.as_view(), name="not_uploaded_report"),
                   path('reports/invoice-summary/', InvoiceSummaryReportView.as_view(), name="not_uploaded_report"),
-                  #path('reports/invoice-summary-reconciliation/',views.InvoiceSummaryReconciliationView.as_view(),name='invoice-summary-reconciliation'),
+        
                   path('reports/invoice-summary-reconciliation/', InvoiceSummaryReconciliationView.as_view(), name='invoice-summary-reconciliation'),
                   
 
