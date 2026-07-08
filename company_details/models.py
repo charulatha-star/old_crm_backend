@@ -2,6 +2,7 @@ from django.contrib.auth.models import User
 from django.db import models
 from django.core.validators import validate_email # Added by me
 from django.core.exceptions import ValidationError #Added by me
+import re  # Added by me
 
 from categories.models import Country, Roles, PaymentTerms, InvoiceCompanyAddress, InvoiceBankDetails, InvoiceAuthorizedPerson
 
@@ -10,16 +11,67 @@ PAYMENT_TERM = (
     ("Post Payment", "Post Payment"),
 )
 
-# Added by me
+# # Added by me
+# def validate_comma_separated_emails(value):
+#     """Validates each email in a comma-separated list."""
+#     emails = [e.strip() for e in value.split(",") if e.strip()]
+#     for email in emails:
+#         try:
+#             validate_email(email)
+#         except ValidationError:
+#             raise ValidationError(f"'{email}' is not a valid email address.")
+        
+
+
+
+# Added by me 
 def validate_comma_separated_emails(value):
-    """Validates each email in a comma-separated list."""
-    emails = [e.strip() for e in value.split(",") if e.strip()]
+    """
+    Strict comma-separated email validator:
+      - exactly ONE comma between two emails (no double/triple commas like ",,")
+      - no leading or trailing comma
+      - no trailing full stop after an individual email or the whole list
+      - each individual email must still be a valid email address
+
+    Valid:   "a@x.com, b@x.com"
+    Invalid: "a@x.com,, b@x.com"   (double comma)
+    Invalid: "a@x.com, b@x.com."   (trailing full stop)
+    Invalid: ",a@x.com"           (leading comma)
+    Invalid: "a@x.com,"           (trailing comma)
+    """
+    if not value:
+        return
+
+    raw = value.strip()
+
+    if raw.startswith(","):
+        raise ValidationError("Email list cannot start with a comma.")
+    if raw.endswith(","):
+        raise ValidationError("Email list cannot end with a comma.")
+
+    # Catches ",," and ", ,"  (double comma with/without space in between)
+    if re.search(r",\s*,", raw):
+        raise ValidationError(
+            "Only one comma is allowed between two email addresses "
+            "(found consecutive commas)."
+        )
+
+    emails = [e.strip() for e in raw.split(",")]
+
     for email in emails:
+        if not email:
+            raise ValidationError("Found an empty email address between commas.")
+
+        if email.endswith("."):
+            raise ValidationError(f"'{email}' should not end with a full stop.")
+
         try:
             validate_email(email)
         except ValidationError:
             raise ValidationError(f"'{email}' is not a valid email address.")
         
+
+
 
 class CompanyDetails(models.Model):
     objects = None
@@ -71,6 +123,16 @@ class CompanyDetails(models.Model):
         # help_text="Comma-separated email addresses (e.g. a@x.com, b@x.com)",
         validators=[validate_comma_separated_emails],
     )
+
+
+    # Added by me
+    show_campaign_name_in_email = models.BooleanField(
+        default=False,
+        verbose_name="Campaign name display in the email",
+        # help_text="Uncheck to hide campaign name(s) in invoice emails sent to this company.",
+    )
+
+
     
     created_on = models.DateTimeField(auto_now_add=True)
     updated_on = models.DateTimeField(auto_now=True)

@@ -9,9 +9,16 @@
        so ticking checkboxes doesn't distort the invoice list's own colors */
     #changelist-form tr.selected,
     #changelist-form tr.selected > th,
-    #changelist-form tr.selected > td {
+    #changelist-form tr.selected > td,
+    #changelist-form tbody tr.selected a {
         background-color: transparent !important;
         color: inherit !important;
+    }
+
+    /* Hide the native Action dropdown/Go button,
+       but the row checkboxes stay because `actions` is still registered */
+    .actions {
+        display: none !important;
     }
 </style>
 {% endblock %}
@@ -59,6 +66,14 @@
         </div>
     </div>
 </div>
+
+{% comment %} # Added by me
+<div class="my-3">
+    <button type="button" id="bulkSendEmailBtn" class="btn btn-primary" disabled
+            onclick="openBulkSendEmailModal()">
+        Send Email (Selected Invoices)
+    </button>
+</div> {% endcomment %}
 
 {{ block.super }}
 {% endblock %}

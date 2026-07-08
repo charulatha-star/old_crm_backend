@@ -240,7 +240,6 @@ class AedExchangeRateMonthAdmin(admin.ModelAdmin):
 @admin.register(Currency, site=admin_site)
 class CurrencyAdmin(admin.ModelAdmin):
     list_display = ("code", "name", "is_active")
-    #print("Currency Admin Loaded")
     search_fields = ("code", "name")
 
     def has_delete_permission(self, request, obj=None):

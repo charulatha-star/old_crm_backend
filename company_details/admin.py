@@ -4,6 +4,9 @@ from django.utils.safestring import mark_safe
 from django.db.models import Sum
 from django.contrib import admin
 from django import forms
+import re  # Added by me
+from django.core.validators import validate_email  # Added by me
+
 
 from categories.admin import admin_site
 from . import models
@@ -23,6 +26,165 @@ class CompanyDetailsForm(forms.ModelForm):
                 username=self.instance.user.email if self.instance.pk else ""):
             raise ValidationError('Email Id already exists')
         return self.cleaned_data['email']
+    
+    # Added by me
+    # ------------------------------------------------------------------
+    # Domain validation for Default Email To / Default Email CC
+    # ------------------------------------------------------------------
+
+
+    
+    @staticmethod
+    def _extract_domain(email):
+        email = (email or "").strip().lower()
+        if "@" not in email:
+            return None
+        return email.split("@")[-1]
+    
+    @staticmethod
+    def _validate_email_list_syntax(value):
+        """
+        Checked FIRST, before any domain logic. Raises ValidationError on:
+          - leading/trailing comma
+          - consecutive commas ("," ",")
+          - an individual email ending with a full stop
+          - an individual email that isn't a valid email address
+        Returns the list of stripped individual emails if syntax is OK.
+        """
+        raw = (value or "").strip()
+        if not raw:
+            return []
+
+        if raw.startswith(","):
+            raise ValidationError("Email list cannot start with a comma.")
+        if raw.endswith(","):
+            raise ValidationError("Email list cannot end with a comma.")
+        if re.search(r",\s*,", raw):
+            raise ValidationError(
+                "Only one comma is allowed between two email addresses "
+                "(found consecutive commas)."
+            )
+
+        emails = [e.strip() for e in raw.split(",")]
+        for email in emails:
+            if not email:
+                raise ValidationError("Found an empty email address between commas.")
+            if email.endswith("."):
+                raise ValidationError("'{}' should not end with a full stop.".format(email))
+            try:
+                validate_email(email)
+            except ValidationError:
+                raise ValidationError("'{}' is not a valid email address.".format(email))
+
+        return emails
+    
+    def _get_allowed_domains(self):
+        """
+        Domains this company is allowed to use for default_email_send_to /
+        default_email_send_cc, derived from Company Contacts:
+
+          1. Contacts already saved in the DB (edit mode).
+          2. Contacts being added/edited right now in the Company Contacts
+             inline on THIS same page submission (works for both add & edit,
+             since the inline formset is part of the same POST).
+
+        Returns an empty set if the company has no contacts at all (existing
+        or new) -- callers should treat an empty set as "no restriction".
+        """
+        if getattr(self, "_allowed_domains_cache", None) is not None:
+            return self._allowed_domains_cache
+
+        domains = set()
+
+        # 1. Existing saved contacts (only applies when editing)
+        if self.instance and self.instance.pk:
+            existing_emails = models.CompanyContacts.objects.filter(
+                company=self.instance
+            ).values_list("email", flat=True)
+            for email in existing_emails:
+                domain = self._extract_domain(email)
+                if domain:
+                    domains.add(domain)
+
+        # 2. Contacts being submitted right now via the "Company Contacts" inline
+        #    Default inline prefix = model_name = "companycontacts"
+        data = self.data or {}
+        prefix = "companycontacts"
+        total_forms_key = "{}-TOTAL_FORMS".format(prefix)
+        
+        if total_forms_key in data:
+            try:
+                total_forms = int(data.get(total_forms_key) or 0)
+            except (TypeError, ValueError):
+                total_forms = 0
+
+            for i in range(total_forms):
+                row_prefix = "{}-{}".format(prefix, i)
+
+                # Skip rows the user marked for deletion
+                if data.get("{}-DELETE".format(row_prefix)):
+                    continue
+
+                email = data.get("{}-email".format(row_prefix), "")
+                domain = self._extract_domain(email)
+                if domain:
+                    domains.add(domain)
+        
+        self._allowed_domains_cache = domains
+        return domains
+    
+    def _clean_default_email_field(self, field_name):
+        value = self.cleaned_data.get(field_name)
+        if not value:
+            return value
+
+        # 1. SYNTAX CHECK FIRST — commas / full stops / basic format.
+        #    If this raises, domain logic below never runs, so the user
+        #    only ever sees the syntax error, not a misleading domain error.
+        emails = self._validate_email_list_syntax(value)
+
+        # 2. Domain check — only reached if syntax was clean
+        allowed_domains = self._get_allowed_domains()
+
+        # No contacts at all (existing or new) -> no restriction
+        if not allowed_domains:
+            return value
+        
+        invalid_emails = [
+            e for e in emails if self._extract_domain(e) not in allowed_domains
+        ]
+        if invalid_emails:
+            raise ValidationError(
+                "These email(s) don't match any Company Contact's domain "
+                "({}): {}".format(
+                    ", ".join(sorted(allowed_domains)),
+                    ", ".join(invalid_emails),
+                )
+            )
+        return value
+    
+    def clean_default_email_send_to(self):
+        return self._clean_default_email_field("default_email_send_to")
+
+    def clean_default_email_send_cc(self):
+        return self._clean_default_email_field("default_email_send_cc")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -158,7 +320,8 @@ class CompanyDetailsAdmin(admin.ModelAdmin):
              # Added by me
             (
             "default_email_send_to",
-            "default_email_send_cc"
+            "default_email_send_cc",
+            "show_campaign_name_in_email"
             ),  
 
             "created_on",

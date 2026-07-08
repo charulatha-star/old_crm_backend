@@ -315,7 +315,7 @@ class InvoiceAuthorizedPerson(models.Model):
 import calendar
 from django.core.validators import MinValueValidator
 
-# ... existing imports already unga file la irukku
+
 
 class AedExchangeRateMonth(models.Model):
     objects = None
@@ -345,20 +345,12 @@ class AedExchangeRateMonth(models.Model):
 class AedExchangeRate(models.Model):
     objects = None
 
-    # CURRENCY_CHOICES = (
-    #     ("USD", "USD"),
-    #     ("AUD", "AUD"),
-    #     ("CAD", "CAD"),
-    #     ("EUR", "EUR"),
-    #     ("NZD", "NZD"),    
-    # )
-
     month = models.ForeignKey(
         AedExchangeRateMonth,
         on_delete=models.CASCADE,
         related_name="rates"
     )
-    #currency = models.CharField(max_length=3, choices=CURRENCY_CHOICES)
+
     currency = models.ForeignKey("Currency", on_delete=models.PROTECT, limit_choices_to={"is_active": True})
     exchange_rate = models.DecimalField(
         max_digits=12, decimal_places=6,

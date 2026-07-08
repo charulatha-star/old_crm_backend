@@ -28,12 +28,106 @@ from django.core.mail import EmailMultiAlternatives
 from django.conf import settings
 from invoices.views import get_invoice_pdf_bytes
 from django.contrib import messages
+from django.utils.html import strip_tags   
+from django.core.exceptions import ValidationError
+
+
+
+# Added by me
+def _build_single_email_body(invoice, show_campaign_override=None):
+    """Returns (plain_body, html_body) for the single-invoice email —
+    used to pre-fill the editable body box in the preview modal."""
+    plain_block, html_block = _invoice_email_blocks(invoice, show_campaign_override=show_campaign_override)
+
+    plain_body = (
+        "Hi Team,\n\n"
+        "I have attached the campaign Invoice and summary report for the period {} to {}.\n\n"
+        "Please verify the reports and give approval for the same.\n\n"
+        "{}\n"
+        "Please review and confirm.\n\n"
+        "Thanks & Regards,\n"
+        "Billiontags Team"
+    ).format(invoice.invoice_from.strftime("%d %b, %Y"), invoice.invoice_to.strftime("%d %b, %Y"), plain_block)
+
+    html_body = (
+        "Hi Team,<br><br>"
+        "I have attached the campaign Invoice and summary report for the period {} to {}.<br><br>"
+        "Please verify the reports and give approval for the same.<br><br>"
+        "{}<br>"
+        "Please review and confirm.<br><br>"
+        "Thanks &amp; Regards,<br>"
+        "Billiontags Team"
+    ).format(invoice.invoice_from.strftime("%d %b, %Y"), invoice.invoice_to.strftime("%d %b, %Y"), html_block)
+
+    return plain_body, html_body
+
+
+# Added by me
+def _build_bulk_email_body(invoices, show_campaign_override=None):
+    plain_blocks, html_blocks = [], []
+    for invoice in invoices:
+        p, h = _invoice_email_blocks(invoice, show_campaign_override=show_campaign_override)
+        plain_blocks.append(p)
+        html_blocks.append(h)
+
+    plain_body = (
+        "Hi Team,\n\nI have attached the campaign Invoices and summary report for the period {} to {}.\n\n"
+        "Please verify the reports and give approval for the same.\n\n{}\n"
+        "Please review and confirm.\n\nThanks & Regards,\nBilliontags Team"
+    ).format(invoices[0].invoice_from.strftime("%d %b, %Y"), invoices[0].invoice_to.strftime("%d %b, %Y"),
+             "\n".join(plain_blocks))
+
+    html_body = (
+        "Hi Team,<br><br>I have attached the campaign Invoices and summary report for the period {} to {}.<br><br>"
+        "Please verify the reports and give approval for the same.<br><br>{}"
+        "Please review and confirm.<br><br>Thanks &amp; Regards,<br>Billiontags Team"
+    ).format(invoices[0].invoice_from.strftime("%d %b, %Y"), invoices[0].invoice_to.strftime("%d %b, %Y"),
+             "<br>".join(html_blocks))
+
+    return plain_body, html_body
+
+
+# Added by me
+def _html_to_plain(html):
+    """Rough HTML->plain-text fallback for the multipart email, used when
+    the user has edited the body in the modal (we only get their HTML back)."""
+    text = html.replace("<br>", "\n").replace("<br/>", "\n").replace("<br />", "\n")
+    return strip_tags(text)
+
+# Added by me
+def _build_single_invoice_subject(invoice):
+    company = invoice.company
+    return "{} Invoice {} - {}".format(
+        company.name, invoice.invoice_from.strftime("%B %Y"), invoice.invoice_no
+    )
+
+# Added by me
+def _build_bulk_invoice_subject(invoices):
+    company = invoices[0].company
+    return "{} Invoices {} - {}".format(
+        company.name, invoices[0].invoice_from.strftime("%B %Y"), invoices[-1].invoice_no
+    )
+
+
+
+
 
 # Added by me
 # Create the Campaign name in the email as red color  
-def _campaign_lines_html(invoice):
+def _campaign_lines_html(invoice, show_campaign_override=None):
     """Red campaign lines, e.g. 'Cavendish Farms FY26 South
-    Asians ( BTU260106 - Invoice )', linking to that invoice's PDF."""
+    Asians ( BTU260106 - Invoice )', linking to that invoice's PDF.
+
+    show_campaign_override, if not None, takes priority over the company's
+    saved show_campaign_name_in_email flag -- used when the user flips the
+    checkbox in the Send Email preview modal for this one send."""
+    show_campaign = (
+        invoice.company.show_campaign_name_in_email
+        if show_campaign_override is None else show_campaign_override
+    )
+    if not show_campaign:
+        return "-"
+    
     lines = []
     for name in invoice.campaigns.values_list("name", flat=True):
         lines.append(
@@ -43,39 +137,60 @@ def _campaign_lines_html(invoice):
         )
     return "<br>".join(lines) if lines else "-"
 
+
+
+
+
 # Added by me
 # This function generates the plain text and HTML blocks for an invoice email, including billing cycle, amount, campaign names, and due date. It is used for both single-invoice emails and bulk emails.
-def _invoice_email_blocks(invoice):
+def _invoice_email_blocks(invoice, show_campaign_override=None):
     """Returns (plain_block, html_block) for one invoice — reused for both
-    the single-invoice send and each entry in a bulk send."""
+    the single-invoice send and each entry in a bulk send.
+
+    show_campaign_override, if not None, overrides the company's saved
+    show_campaign_name_in_email flag for this send only (comes from the
+    checkbox in the Send Email preview modal)."""
+    
     company = invoice.company
     currency = company.billing_currency.currency_symbols if company.billing_currency else ""
-    campaign_names_plain = ", ".join(invoice.campaigns.values_list("name", flat=True))
 
+    show_campaign = (
+        company.show_campaign_name_in_email
+        if show_campaign_override is None else show_campaign_override
+    )
+    campaign_names_plain = (
+        ", ".join(invoice.campaigns.values_list("name", flat=True)) if show_campaign else ""
+    )
+    
     plain_block = (
         "Billing Cycle: {} to {}\n"
         "Amount: {} {}\n"
-        "Campaign: {} ( {} - Invoice )\n"
+        "{}"
         "Due Date: {}\n"
     ).format(
         invoice.invoice_from.strftime("%b %d, %Y"), invoice.invoice_to.strftime("%b %d, %Y"),
         currency, invoice.total_pay_amount(),
-        campaign_names_plain, invoice.invoice_no,
+        "Campaign: {} ( {} - Invoice )\n".format(campaign_names_plain, invoice.invoice_no) if show_campaign else "",
         invoice.due_date.strftime("%b %d, %Y"),
     )
-
+    
     html_block = (
         "<b>Billing Cycle:</b> {} to {}<br>"
         "<b>Amount:</b> {} {}<br>"
-        "<b>Campaign:</b> {}<br>"
+        "{}"
         "<b>Due Date:</b> {}<br>"
     ).format(
         invoice.invoice_from.strftime("%b %d, %Y"), invoice.invoice_to.strftime("%b %d, %Y"),
         currency, invoice.total_pay_amount(),
-        _campaign_lines_html(invoice),
+        "<b>Campaign:</b> {}<br>".format(
+            _campaign_lines_html(invoice, show_campaign_override=show_campaign_override)
+        ) if show_campaign else "",
         invoice.due_date.strftime("%b %d, %Y"),
     )
+    
     return plain_block, html_block
+
+
 
 # Added by me
 def _safe_filename_part(text):
@@ -668,7 +783,9 @@ class InvoicesAdmin(admin.ModelAdmin):
     change_list_template = "invoice_list_template.html"
     inlines = [BillingLineItemsAdminInline, PaymentHistoryAdminInline]
     filter_horizontal = ("campaigns",)
-    actions = ["send_bulk_invoice_email"] # Added by me
+     # Added by me
+    actions = ["noop_action"]  # kept only so Django still renders the row checkboxes
+    # actions = ["send_bulk_invoice_email"] # Added by me
 
     fieldsets = (
         (None, {
@@ -683,14 +800,26 @@ class InvoicesAdmin(admin.ModelAdmin):
         }),
     )
     
+    # # Added by me
+    # def send_bulk_invoice_email(self, request, queryset):
+    #     self.message_user(
+    #         request,
+    #         "Please use the 'Send Email' button in the row instead of this dropdown action.",
+    #         level=messages.INFO,
+    #     )
+    # send_bulk_invoice_email.short_description = "Send Invoice Email (use Send Email button instead)"
+
+    
     # Added by me
-    def send_bulk_invoice_email(self, request, queryset):
-        self.message_user(
-            request,
-            "Please use the 'Send Email' button in the row instead of this dropdown action.",
-            level=messages.INFO,
-        )
-    send_bulk_invoice_email.short_description = "Send Invoice Email (use Send Email button instead)"
+    # Dummy action, never actually shown/used.
+    # Its only job is to make Django register `actions`, which is what
+    # makes the row checkboxes render. The dropdown itself is hidden via CSS below.
+    def noop_action(self, request, queryset):
+        pass
+    noop_action.short_description = "———"    
+
+
+
 
     # ------------------------------------------------------------------
     # Inject request into InvoiceAdminForm
@@ -728,6 +857,7 @@ class InvoicesAdmin(admin.ModelAdmin):
         if request.user.groups.filter(pk=2).exists():
             return base + ("view_io", "view_aed_invoice")
         return base + ("invoice_approval", "view_io",  "view_aed_invoice", "send_email", "update_payment")
+        # return base + ("invoice_approval", "send_email", "view_io", "update_payment") # Added by me
 
     # ------------------------------------------------------------------
     # Extra URLs
@@ -744,10 +874,45 @@ class InvoicesAdmin(admin.ModelAdmin):
             path("<int:pk>/send-email/", self.admin_site.admin_view(self.send_email_view)),              # Added by me
             path("send-bulk-email-preview/", self.admin_site.admin_view(self.send_bulk_email_preview)), # Added by me
             path("send-bulk-email/", self.admin_site.admin_view(self.send_bulk_email_view)), # Added by me
-    
+            path("save-company-emails/<int:company_id>/", self.admin_site.admin_view(self.save_company_emails_view)), # Added by me
+
+            
         ]
         return custom + super().get_urls()
+
+
     
+    
+    # Added by me
+    def save_company_emails_view(self, request, company_id):
+        if request.method != "POST":
+            return JsonResponse({"status": False, "message": "Invalid request method."})
+
+        company = CompanyDetails.objects.get(pk=company_id)
+        to_value = (request.POST.get("default_email_send_to") or "").strip()
+        cc_value = (request.POST.get("default_email_send_cc") or "").strip()
+
+        if not to_value:
+            return JsonResponse({"status": False, "field": "to", "message": "Default Email To is required."})
+
+        error = _validate_default_email_field(company, to_value)
+        if error:
+            return JsonResponse({"status": False, "field": "to", "message": error})
+
+        if cc_value:
+            error = _validate_default_email_field(company, cc_value)
+            if error:
+                return JsonResponse({"status": False, "field": "cc", "message": error})
+
+        company.default_email_send_to = to_value
+        company.default_email_send_cc = cc_value
+        company.save(update_fields=["default_email_send_to", "default_email_send_cc"])
+
+        return JsonResponse({"status": True, "message": "Email settings saved."})
+
+
+    
+
     # Added by me
     def send_bulk_email_preview(self, request):
         ids = [i for i in request.GET.get("ids", "").split(",") if i.strip()]
@@ -767,8 +932,14 @@ class InvoicesAdmin(admin.ModelAdmin):
         to_emails = [e.strip() for e in (company.default_email_send_to or "").split(",") if e.strip()]
         cc_emails = [e.strip() for e in (company.default_email_send_cc or "").split(",") if e.strip()]
         if not to_emails:
-            return JsonResponse({"status": False, "message": "No 'Default Email To' configured for {}.".format(company.name)})
-
+            return JsonResponse({
+                "status": False,
+                "message": "No 'Default Email To' configured for {}.".format(company.name),
+                "needs_email_setup": True,                                    # Added by me
+                "company_id": company.id,                                     # Added by me
+                "default_email_send_to": company.default_email_send_to or "", # Added by me
+                "default_email_send_cc": company.default_email_send_cc or "", # Added by me
+            })
         campaigns = []
         for inv in invoices:
             campaigns.extend(inv.campaigns.values_list("name", flat=True))
@@ -778,15 +949,25 @@ class InvoicesAdmin(admin.ModelAdmin):
         ]
         attachments.append("Campaign Report ({} To {}.xlsx)".format(invoices[0].invoice_no, invoices[-1].invoice_no))
 
+        _, html_body_with = _build_bulk_email_body(invoices, show_campaign_override=True)
+        _, html_body_without = _build_bulk_email_body(invoices, show_campaign_override=False)
+
         return JsonResponse({
             "status": True,
             "invoice_no": "{} To {}".format(invoices[0].invoice_no, invoices[-1].invoice_no),
             "company": company.name,
+            "subject": _build_bulk_invoice_subject(invoices),           # Added
+            "show_campaign_name": company.show_campaign_name_in_email,  # Added
             "to": to_emails,
             "cc": cc_emails,
             "campaigns": campaigns,
             "attachments": attachments,
+            "email_body_html_with_campaign": html_body_with,        
+            "email_body_html_without_campaign": html_body_without,  
         })
+
+
+
     # Added by me
     def send_bulk_email_view(self, request):
         if request.method != "POST":
@@ -809,29 +990,20 @@ class InvoicesAdmin(admin.ModelAdmin):
         if not to_emails:
             return JsonResponse({"status": False, "message": "No 'Default Email To' configured for {}.".format(company.name)})
 
-        subject = "{} Invoices {} - {}".format(
-            company.name, invoices[0].invoice_from.strftime("%B %Y"), invoices[-1].invoice_no
-        )
+        # Checkbox override from the Send Email preview modal
+        show_campaign_override = request.POST.get("show_campaign_name") == "true"
 
-        plain_blocks, html_blocks = [], []
-        for invoice in invoices:
-            p, h = _invoice_email_blocks(invoice)
-            plain_blocks.append(p)
-            html_blocks.append(h)
+        subject_override = (request.POST.get("subject") or "").strip()
+        subject = subject_override if subject_override else _build_bulk_invoice_subject(invoices)
 
-        plain_body = (
-            "Hi Team,\n\nI have attached the campaign Invoices and summary report for the period {} to {}.\n\n"
-            "Please verify the reports and give approval for the same.\n\n{}\n"
-            "Please review and confirm.\n\nThanks & Regards,\nBilliontags Team"
-        ).format(invoices[0].invoice_from.strftime("%d %b, %Y"), invoices[0].invoice_to.strftime("%d %b, %Y"),
-                "\n".join(plain_blocks))
-
-        html_body = (
-            "Hi Team,<br><br>I have attached the campaign Invoices and summary report for the period {} to {}.<br><br>"
-            "Please verify the reports and give approval for the same.<br><br>{}"
-            "Please review and confirm.<br><br>Thanks &amp; Regards,<br>Billiontags Team"
-        ).format(invoices[0].invoice_from.strftime("%d %b, %Y"), invoices[0].invoice_to.strftime("%d %b, %Y"),
-                "<br>".join(html_blocks))
+        # Added by me
+        html_body_override = (request.POST.get("email_body") or "").strip()
+        if html_body_override:
+            html_body = html_body_override
+            plain_body = _html_to_plain(html_body_override)
+        else:
+            show_campaign_override = request.POST.get("show_campaign_name") == "true"
+            plain_body, html_body = _build_bulk_email_body(invoices, show_campaign_override=show_campaign_override)
 
         email = EmailMultiAlternatives(
             subject=subject, body=plain_body, from_email=settings.DEFAULT_FROM_EMAIL,
@@ -874,16 +1046,26 @@ class InvoicesAdmin(admin.ModelAdmin):
         if not to_emails:
             return JsonResponse({
                 "status": False,
-                "message": "No 'Default Email To' configured for {}. Please add it under Company Details.".format(company.name)
+                "message": "No 'Default Email To' configured for {}.".format(company.name),
+                "needs_email_setup": True,                                    
+                "company_id": company.id,                                     
+                "default_email_send_to": company.default_email_send_to or "", 
+                "default_email_send_cc": company.default_email_send_cc or "", 
             })
 
         campaigns = list(invoice.campaigns.values_list("name", flat=True))
         file_prefix = "{} - {}".format(invoice.invoice_no, _safe_filename_part(company.name))
+        
+        # Added by me
+        _, html_body_with = _build_single_email_body(invoice, show_campaign_override=True)
+        _, html_body_without = _build_single_email_body(invoice, show_campaign_override=False)
 
         return JsonResponse({
             "status": True,
             "invoice_no": invoice.invoice_no,
             "company": company.name,
+            "subject": _build_single_invoice_subject(invoice),          # Added
+            "show_campaign_name": company.show_campaign_name_in_email,  # Added
             "to": to_emails,
             "cc": cc_emails,
             "campaigns": campaigns,
@@ -891,7 +1073,10 @@ class InvoicesAdmin(admin.ModelAdmin):
                 "Invoice PDF ({}.pdf)".format(file_prefix),
                 "Campaign Report ({}.xlsx)".format(file_prefix),
             ],
+            "email_body_html_with_campaign": html_body_with,        # Added by me
+            "email_body_html_without_campaign": html_body_without,  # Added by me
         })
+
 
     # Added by me
     # Actual send — stub for now, real send_mail logic comes in Step 4
@@ -911,32 +1096,25 @@ class InvoicesAdmin(admin.ModelAdmin):
                 "message": "No 'Default Email To' configured for {}.".format(company.name)
             })
 
-        subject = "{} Invoice {} - {}".format(
-            company.name, invoice.invoice_from.strftime("%B %Y"), invoice.invoice_no
-        )
+        # Checkbox override from the Send Email preview modal
+        
+        show_campaign_override = request.POST.get("show_campaign_name") == "true"
 
-        plain_block, html_block = _invoice_email_blocks(invoice)
+        # User-edited subject from the modal takes priority;
+        # fall back to the auto-generated one if it's blank (e.g. JS didn't run)
+        subject_override = (request.POST.get("subject") or "").strip()
+        subject = subject_override if subject_override else _build_single_invoice_subject(invoice)
 
-        plain_body = (
-            "Hi Team,\n\n"
-            "I have attached the campaign Invoice and summary report for the period {} to {}.\n\n"
-            "Please verify the reports and give approval for the same.\n\n"
-            "{}\n"
-            "Please review and confirm.\n\n"
-            "Thanks & Regards,\n"
-            "Billiontags Team"
-        ).format(invoice.invoice_from.strftime("%d %b, %Y"), invoice.invoice_to.strftime("%d %b, %Y"), plain_block)
-
-        html_body = (
-            "Hi Team,<br><br>"
-            "I have attached the campaign Invoice and summary report for the period {} to {}.<br><br>"
-            "Please verify the reports and give approval for the same.<br><br>"
-            "{}<br>"
-            "Please review and confirm.<br><br>"
-            "Thanks &amp; Regards,<br>"
-            "Billiontags Team"
-        ).format(invoice.invoice_from.strftime("%d %b, %Y"), invoice.invoice_to.strftime("%d %b, %Y"), html_block)
-
+        # Added by me -- edited body from the modal takes priority over
+        # regenerating it, so the recipient gets exactly what the user saw/typed
+        html_body_override = (request.POST.get("email_body") or "").strip()
+        if html_body_override:
+            html_body = html_body_override
+            plain_body = _html_to_plain(html_body_override)
+        else:
+            show_campaign_override = request.POST.get("show_campaign_name") == "true"
+            plain_body, html_body = _build_single_email_body(invoice, show_campaign_override=show_campaign_override)
+        
         email = EmailMultiAlternatives(
             subject=subject,
             body=plain_body,
@@ -968,6 +1146,9 @@ class InvoicesAdmin(admin.ModelAdmin):
 
         return JsonResponse({"status": True, "message": "Email sent successfully to {}".format(", ".join(to_emails))})
     
+
+
+
     
     #invoice reconciliation view for admin users to see the invoice summary and reconciliation report
     def invoice_reconciliation(self, request):
@@ -991,6 +1172,14 @@ class InvoicesAdmin(admin.ModelAdmin):
         invoice = utils.int_to_invoice(pk)
         invoice.is_approved = True
         invoice.save(update_fields=["is_approved"])
+        #return redirect("../..")
+
+
+        # Added by me 
+        # AJAX calls get JSON back instead of a redirect,
+        # so the page doesn't reload and checkbox selections aren't lost
+        if request.method == "POST" or request.headers.get("x-requested-with") == "XMLHttpRequest":
+            return JsonResponse({"status": True, "message": "Invoice approved successfully."})
         return redirect("../..")
     
 
@@ -1456,7 +1645,7 @@ class InvoicesAdmin(admin.ModelAdmin):
         except ValueError:
             return JsonResponse({"status": False, "message": "Invalid invoice month format"})
 
-        # Month range — campaign filter + duplicate check both use pannuvom
+      
         month_start = invoice_month.replace(day=1)
         last_day = calendar.monthrange(invoice_month.year, invoice_month.month)[1]
         month_end = invoice_month.replace(day=last_day)
@@ -1825,6 +2014,7 @@ class InvoicesAdmin(admin.ModelAdmin):
     view_io.short_description = "View Invoice"
 
 
+
     def view_aed_invoice(self, obj):
         if obj.company.enable_aed_invoice:
             return mark_safe(
@@ -1840,15 +2030,32 @@ class InvoicesAdmin(admin.ModelAdmin):
 
 
 
+    # def invoice_approval(self, obj):
+    #     if not obj.is_approved:
+    #         return mark_safe(
+    #             "<a href='{id}/approve-invoice/' "
+    #             "class='btn btn-sm btn-outline-secondary'>Approve Invoice</a>".format(id=obj.id)
+    #         )
+    #     return mark_safe("<span class='btn btn-sm btn-outline-success'>Approved</span>")
+
+    # invoice_approval.short_description = "Manager Approval"
+
+
+       # Added by me
     def invoice_approval(self, obj):
         if not obj.is_approved:
             return mark_safe(
-                "<a href='{id}/approve-invoice/' "
-                "class='btn btn-sm btn-outline-secondary'>Approve Invoice</a>".format(id=obj.id)
+                "<button type='button' class='btn btn-sm btn-outline-secondary' "
+                "onclick=\"approveInvoiceAjax({id}, this)\">Approve Invoice</button>".format(id=obj.id)
             )
         return mark_safe("<span class='btn btn-sm btn-outline-success'>Approved</span>")
 
     invoice_approval.short_description = "Manager Approval"
+
+
+
+
+
 
     # Added by me
     def send_email(self, obj):
@@ -1875,6 +2082,36 @@ class InvoicesAdmin(admin.ModelAdmin):
     update_payment.short_description = "Update Payment"
 
 
+
+
+
+
+# Added by me
+from company_details.models import validate_comma_separated_emails, CompanyContacts
+
+def _validate_default_email_field(company, value):
+    """Returns an error string, or None if valid. Reuses the exact same
+    rules as CompanyDetailsForm: syntax check first, then domain check
+    against this company's existing Company Contacts."""
+    if not value:
+        return None
+
+    try:
+        validate_comma_separated_emails(value)
+    except ValidationError as e:
+        return "; ".join(e.messages)
+
+    emails = [e.strip() for e in value.split(",") if e.strip()]
+    contact_emails = CompanyContacts.objects.filter(company=company).values_list("email", flat=True)
+    allowed_domains = set(e.split("@")[-1].lower() for e in contact_emails if "@" in e)
+
+    if allowed_domains:
+        invalid = [e for e in emails if e.split("@")[-1].lower() not in allowed_domains]
+        if invalid:
+            return "These email(s) don't match any Company Contact's domain ({}): {}".format(
+                ", ".join(sorted(allowed_domains)), ", ".join(invalid)
+            )
+    return None
 
 
 
